@@ -19,7 +19,7 @@ export function Header() {
       {/* Main header */}
       <div className="container mx-auto px-4 pt-16 md:pt-24 pb-6 md:pb-8">
         <div className="flex items-center justify-center relative">
-          <h1 className="text-4xl md:text-6xl lg:text-8xl xl:text-9xl font-bold tracking-wider text-black">ANTHONY</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-6xl lg:text-8xl xl:text-9xl font-bold tracking-wider text-black">ANTHONY</h1>
 
           {/* Decorative crest/logo */}
           <div className="absolute mx-auto hidden">
@@ -33,7 +33,7 @@ export function Header() {
         </div>
 
         <div className="text-center mt-2 md:mt-4">
-          <h1 className="text-4xl md:text-6xl lg:text-8xl xl:text-9xl font-bold tracking-wider text-black">
+          <h1 className="text-2xl sm:text-3xl md:text-6xl lg:text-8xl xl:text-9xl font-bold tracking-wider text-black">
             ADEGBULUGBE
           </h1>
         </div>

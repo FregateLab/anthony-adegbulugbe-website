@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Header } from "@/components/header"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
@@ -141,9 +141,10 @@ const books = {
   },
 }
 
-export default function BookDetailPage({ params }: { params: { id: string } }) {
+export default function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [activeTab, setActiveTab] = useState("overview")
-  const bookId = Number.parseInt(params.id)
+  const resolvedParams = use(params)
+  const bookId = Number.parseInt(resolvedParams.id)
   const book = books[bookId as keyof typeof books]
 
   useEffect(() => {
@@ -161,68 +162,68 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
       <Header />
       <Navigation />
 
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-4 py-8 sm:py-12">
         {/* Book Header */}
-        <div className="border-2 border-black bg-white p-8 mb-8">
-          <div className="grid md:grid-cols-3 gap-8">
+        <div className="border-2 border-black bg-white p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
             {/* Book Cover */}
             <div className="md:col-span-1">
               <img
                 src={book.cover || "/placeholder.svg"}
                 alt={book.title}
-                className="w-full max-w-[300px] mx-auto border-2 border-black shadow-lg"
+                className="w-full max-w-[200px] sm:max-w-[250px] md:max-w-[300px] mx-auto border-2 border-black shadow-lg"
               />
             </div>
 
             {/* Book Details */}
             <div className="md:col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="bg-red-600 text-white px-3 py-1 text-xs font-bold">FREE BOOK</span>
+              <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
+                <span className="bg-red-600 text-white px-2 sm:px-3 py-1 text-xs font-bold">FREE BOOK</span>
                 <span className="bg-yellow-400 text-black px-2 py-1 text-xs font-bold">FEATURED</span>
               </div>
 
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">{book.title}</h1>
-              <p className="text-xl text-gray-600 mb-4">{book.subtitle}</p>
-              <p className="text-lg text-gray-700 mb-6">by {book.author}</p>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 leading-tight">{book.title}</h1>
+              <p className="text-lg sm:text-xl text-gray-600 mb-3 sm:mb-4">{book.subtitle}</p>
+              <p className="text-base sm:text-lg text-gray-700 mb-4 sm:mb-6">by {book.author}</p>
 
               {/* Rating and Stats */}
-              <div className="flex items-center gap-6 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-4 sm:mb-6">
                 <div className="flex items-center gap-2">
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-5 h-5 ${
+                        className={`w-4 h-4 sm:w-5 sm:h-5 ${
                           i < Math.floor(book.rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
                         }`}
                       />
                     ))}
                   </div>
-                  <span className="font-bold">{book.rating}</span>
-                  <span className="text-gray-600">({book.reviewCount} reviews)</span>
+                  <span className="font-bold text-sm sm:text-base">{book.rating}</span>
+                  <span className="text-gray-600 text-sm sm:text-base">({book.reviewCount} reviews)</span>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
                   <span>{book.pages} pages</span>
                   <span>{book.year}</span>
                 </div>
               </div>
 
               {/* Description */}
-              <p className="text-gray-700 mb-8 leading-relaxed">{book.description}</p>
+              <p className="text-sm sm:text-base text-gray-700 mb-6 sm:mb-8 leading-relaxed">{book.description}</p>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {book.hasPdf && (
-                  <Button className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 flex items-center gap-2">
-                    <Download className="w-4 h-4" />
+                  <Button className="bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 py-2 sm:py-3 flex items-center justify-center gap-2 text-sm sm:text-base">
+                    <Download className="w-3 h-3 sm:w-4 sm:h-4" />
                     DOWNLOAD PDF
                   </Button>
                 )}
                 <Button
                   variant="outline"
-                  className="border-2 border-black hover:bg-gray-100 px-8 py-3 flex items-center gap-2 bg-transparent"
+                  className="border-2 border-black hover:bg-gray-100 px-6 sm:px-8 py-2 sm:py-3 flex items-center justify-center gap-2 bg-transparent text-sm sm:text-base"
                 >
-                  <Eye className="w-4 h-4" />
+                  <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
                   READ ONLINE
                 </Button>
               </div>
@@ -231,19 +232,19 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* Tabs */}
-        <div className="border-2 border-black bg-white mb-8">
+        <div className="border-2 border-black bg-white mb-6 sm:mb-8">
           <div className="border-b-2 border-black">
             <div className="flex flex-wrap">
               {[
                 { id: "overview", label: "OVERVIEW" },
-                { id: "contents", label: "TABLE OF CONTENTS" },
+                { id: "contents", label: "CONTENTS" },
                 { id: "reviews", label: "REVIEWS" },
-                { id: "quotes", label: "INSPIRING QUOTES" },
+                { id: "quotes", label: "QUOTES" },
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-4 font-bold text-sm border-r-2 border-black hover:bg-gray-100 ${
+                  className={`px-3 sm:px-6 py-3 sm:py-4 font-bold text-xs sm:text-sm border-r-2 border-black hover:bg-gray-100 flex-1 sm:flex-none ${
                     activeTab === tab.id ? "bg-red-600 text-white" : ""
                   }`}
                 >
@@ -253,51 +254,51 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          <div className="p-8">
+          <div className="p-4 sm:p-6 lg:p-8">
             {/* Overview Tab */}
             {activeTab === "overview" && (
-              <div className="space-y-8">
+              <div className="space-y-6 sm:space-y-8">
                 <div>
-                  <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                    <BookOpen className="w-6 h-6 text-red-600" />
+                  <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
                     ABOUT THIS BOOK
                   </h3>
-                  <p className="text-gray-700 leading-relaxed mb-6">{book.description}</p>
+                  <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-4 sm:mb-6">{book.description}</p>
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-bold mb-4">KEY THEMES COVERED</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">KEY THEMES COVERED</h3>
+                  <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                     {book.keyThemes.map((theme, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-red-600 rounded-full"></div>
-                        <span className="text-gray-700">{theme}</span>
+                        <div className="w-2 h-2 bg-red-600 rounded-full flex-shrink-0"></div>
+                        <span className="text-sm sm:text-base text-gray-700">{theme}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-6 pt-6 border-t-2 border-gray-200">
+                <div className="grid sm:grid-cols-3 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t-2 border-gray-200">
                   <div className="text-center">
                     <div className="flex items-center justify-center mb-2">
-                      <Calendar className="w-8 h-8 text-red-600" />
+                      <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
                     </div>
-                    <div className="text-2xl font-bold">{book.year}</div>
-                    <div className="text-sm text-gray-600">Published</div>
+                    <div className="text-xl sm:text-2xl font-bold">{book.year}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Published</div>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center mb-2">
-                      <BookOpen className="w-8 h-8 text-red-600" />
+                      <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
                     </div>
-                    <div className="text-2xl font-bold">{book.pages}</div>
-                    <div className="text-sm text-gray-600">Pages</div>
+                    <div className="text-xl sm:text-2xl font-bold">{book.pages}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Pages</div>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center mb-2">
-                      <Users className="w-8 h-8 text-red-600" />
+                      <Users className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
                     </div>
-                    <div className="text-2xl font-bold">{book.reviewCount}</div>
-                    <div className="text-sm text-gray-600">Reviews</div>
+                    <div className="text-xl sm:text-2xl font-bold">{book.reviewCount}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Reviews</div>
                   </div>
                 </div>
               </div>
@@ -306,15 +307,15 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
             {/* Table of Contents Tab */}
             {activeTab === "contents" && (
               <div>
-                <h3 className="text-2xl font-bold mb-6">TABLE OF CONTENTS</h3>
-                <div className="space-y-4">
+                <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">TABLE OF CONTENTS</h3>
+                <div className="space-y-3 sm:space-y-4">
                   {book.tableOfContents.map((chapter, index) => (
-                    <div key={index} className="flex items-start gap-4 p-4 border-2 border-gray-200 hover:bg-gray-50">
-                      <div className="bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+                    <div key={index} className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 border-gray-200 hover:bg-gray-50">
+                      <div className="bg-red-600 text-white w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0">
                         {index + 1}
                       </div>
                       <div>
-                        <h4 className="font-bold text-lg">{chapter}</h4>
+                        <h4 className="font-bold text-sm sm:text-base lg:text-lg">{chapter}</h4>
                       </div>
                     </div>
                   ))}
@@ -325,47 +326,47 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
             {/* Reviews Tab */}
             {activeTab === "reviews" && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold">READER REVIEWS</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+                  <h3 className="text-xl sm:text-2xl font-bold">READER REVIEWS</h3>
                   <div className="flex items-center gap-2">
                     <div className="flex">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-5 h-5 ${
+                          className={`w-4 h-4 sm:w-5 sm:h-5 ${
                             i < Math.floor(book.rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
                           }`}
                         />
                       ))}
                     </div>
-                    <span className="font-bold">{book.rating} out of 5</span>
-                    <span className="text-gray-600">({book.reviewCount} reviews)</span>
+                    <span className="font-bold text-sm sm:text-base">{book.rating} out of 5</span>
+                    <span className="text-gray-600 text-xs sm:text-sm">({book.reviewCount} reviews)</span>
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {book.reviews.map((review, index) => (
                     <Card key={index} className="border-2 border-gray-200">
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between mb-4">
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex items-start justify-between mb-3 sm:mb-4">
                           <div>
-                            <h4 className="font-bold">{review.name}</h4>
+                            <h4 className="font-bold text-sm sm:text-base">{review.name}</h4>
                             <div className="flex items-center gap-2 mt-1">
                               <div className="flex">
                                 {[...Array(5)].map((_, i) => (
                                   <Star
                                     key={i}
-                                    className={`w-4 h-4 ${
+                                    className={`w-3 h-3 sm:w-4 sm:h-4 ${
                                       i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
                                     }`}
                                   />
                                 ))}
                               </div>
-                              <span className="text-sm text-gray-600">{review.date}</span>
+                              <span className="text-xs sm:text-sm text-gray-600">{review.date}</span>
                             </div>
                           </div>
                         </div>
-                        <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                        <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{review.comment}</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -376,17 +377,17 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
             {/* Quotes Tab */}
             {activeTab === "quotes" && (
               <div>
-                <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                  <Quote className="w-6 h-6 text-red-600" />
+                <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+                  <Quote className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
                   INSPIRING QUOTES
                 </h3>
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {book.quotes.map((quote, index) => (
                     <Card key={index} className="border-2 border-gray-200 bg-gray-50">
-                      <CardContent className="p-8">
-                        <Quote className="w-8 h-8 text-red-600 mb-4" />
-                        <blockquote className="text-xl italic text-gray-800 leading-relaxed mb-4">"{quote}"</blockquote>
-                        <cite className="text-gray-600 font-medium">— {book.author}</cite>
+                      <CardContent className="p-4 sm:p-6 lg:p-8">
+                        <Quote className="w-6 h-6 sm:w-8 sm:h-8 text-red-600 mb-3 sm:mb-4" />
+                        <blockquote className="text-lg sm:text-xl italic text-gray-800 leading-relaxed mb-3 sm:mb-4">"{quote}"</blockquote>
+                        <cite className="text-sm sm:text-base text-gray-600 font-medium">— {book.author}</cite>
                       </CardContent>
                     </Card>
                   ))}
@@ -398,36 +399,36 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
 
         {/* Other Books */}
         {otherBooks.length > 0 && (
-          <div className="border-2 border-black bg-white p-8">
-            <h3 className="text-2xl font-bold mb-6">OTHER BOOKS BY {book.author.toUpperCase()}</h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="border-2 border-black bg-white p-4 sm:p-6 lg:p-8">
+            <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">OTHER BOOKS BY {book.author.toUpperCase()}</h3>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {otherBooks.map((otherBook) => (
                 <Card key={otherBook.id} className="border-2 border-gray-300 hover:bg-gray-50 transition-colors">
-                  <CardContent className="p-6">
+                  <CardContent className="p-4 sm:p-6">
                     <img
                       src={otherBook.cover || "/placeholder.svg"}
                       alt={otherBook.title}
-                      className="w-full max-w-[150px] mx-auto mb-4 border-2 border-black"
+                      className="w-full max-w-[120px] sm:max-w-[150px] mx-auto mb-3 sm:mb-4 border-2 border-black"
                     />
-                    <h4 className="font-bold text-lg mb-2">{otherBook.title}</h4>
-                    <p className="text-gray-600 text-sm mb-3">{otherBook.subtitle}</p>
-                    <div className="flex items-center gap-2 mb-4">
+                    <h4 className="font-bold text-sm sm:text-base lg:text-lg mb-2 leading-tight">{otherBook.title}</h4>
+                    <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3">{otherBook.subtitle}</p>
+                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
                       <div className="flex">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`w-4 h-4 ${
+                            className={`w-3 h-3 sm:w-4 sm:h-4 ${
                               i < Math.floor(otherBook.rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
                             }`}
                           />
                         ))}
                       </div>
-                      <span className="text-sm font-bold">{otherBook.rating}</span>
+                      <span className="text-xs sm:text-sm font-bold">{otherBook.rating}</span>
                     </div>
                     <Link href={`/books/${otherBook.id}`}>
                       <Button
                         variant="outline"
-                        className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent"
+                        className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent text-xs sm:text-sm"
                       >
                         VIEW BOOK
                       </Button>

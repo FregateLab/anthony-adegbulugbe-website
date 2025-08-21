@@ -334,58 +334,58 @@ export default function SermonsPage() {
       <Header />
       <Navigation />
 
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-4 py-8 sm:py-12">
         {/* Featured Sermon */}
-        <section className="mb-16">
+        <section className="mb-12 sm:mb-16">
           <div className="border-2 border-black bg-white overflow-hidden">
-            <div className="p-8">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="bg-red-600 text-white px-3 py-1 text-xs font-bold">LATEST SERMON</span>
+            <div className="p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
+                <span className="bg-red-600 text-white px-2 sm:px-3 py-1 text-xs font-bold">LATEST SERMON</span>
                 <span className="bg-gray-200 text-gray-800 px-2 py-1 text-xs font-medium">
                   {themes.find((theme) => theme.sermons.some((s) => s.id === mostRecentVideoSermon.id))?.title}
                 </span>
               </div>
 
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">{mostRecentVideoSermon.title}</h1>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 leading-tight">{mostRecentVideoSermon.title}</h1>
 
-              <div className="flex items-center gap-6 text-sm text-gray-600 mb-6">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
+              <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6">
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                   {mostRecentVideoSermon.date}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                   {mostRecentVideoSermon.duration}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1 sm:gap-2">
                   {mostRecentVideoSermon.hasAudio && (
-                    <div className="w-3 h-3 bg-green-600 rounded-full" title="Audio Available"></div>
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-600 rounded-full" title="Audio Available"></div>
                   )}
                   {mostRecentVideoSermon.hasText && (
-                    <div className="w-3 h-3 bg-gray-600 rounded-full" title="Text Available"></div>
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-gray-600 rounded-full" title="Text Available"></div>
                   )}
                 </div>
               </div>
 
-              <p className="text-lg text-gray-700 mb-6 leading-relaxed">{mostRecentVideoSermon.summary}</p>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-700 mb-4 sm:mb-6 leading-relaxed">{mostRecentVideoSermon.summary}</p>
 
-              <div className="mb-6">
-                <p className="text-sm font-bold mb-2">KEY POINTS:</p>
-                <ul className="text-sm text-gray-600 space-y-1">
+              <div className="mb-4 sm:mb-6">
+                <p className="text-xs sm:text-sm font-bold mb-2">KEY POINTS:</p>
+                <ul className="text-xs sm:text-sm text-gray-600 space-y-1">
                   {mostRecentVideoSermon.keyPoints.map((point, index) => (
                     <li key={index}>• {point}</li>
                   ))}
                 </ul>
               </div>
 
-              <div className="mb-8">
-                <p className="text-sm font-bold mb-2">SCRIPTURE REFERENCE:</p>
-                <p className="text-sm text-gray-600">{mostRecentVideoSermon.scripture}</p>
+              <div className="mb-6 sm:mb-8">
+                <p className="text-xs sm:text-sm font-bold mb-2">SCRIPTURE REFERENCE:</p>
+                <p className="text-xs sm:text-sm text-gray-600">{mostRecentVideoSermon.scripture}</p>
               </div>
 
-              <div className="flex flex-wrap gap-4">
-                <Link href={`/sermons/${mostRecentVideoSermon.id}`}>
-                  <Button className="bg-red-600 hover:bg-red-700 text-white px-6 py-3">VIEW FULL SERMON</Button>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <Link href={`/sermons/${mostRecentVideoSermon.id}`} className="w-full sm:w-auto">
+                  <Button className="w-full bg-red-600 hover:bg-red-700 text-white px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base">VIEW FULL SERMON</Button>
                 </Link>
                 <Button
                   onClick={() => {
@@ -394,7 +394,7 @@ export default function SermonsPage() {
                     setShowCollectionModal(true)
                   }}
                   variant="outline"
-                  className="border-2 border-black hover:bg-gray-100 px-6 py-3"
+                  className="w-full sm:w-auto border-2 border-black hover:bg-gray-100 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base"
                 >
                   VIEW COLLECTION
                 </Button>
@@ -404,32 +404,32 @@ export default function SermonsPage() {
         </section>
 
         {/* Search and Filter */}
-        <div className="border-2 border-black bg-white p-6 mb-8">
-          <div className="grid md:grid-cols-2 gap-6">
+        <div className="border-2 border-black bg-white p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
             {/* Search */}
             <div>
-              <label className="block text-sm font-bold mb-2">SEARCH THEMES & SERMONS</label>
+              <label className="block text-xs sm:text-sm font-bold mb-2">SEARCH THEMES & SERMONS</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
                 <input
                   type="text"
                   placeholder="Search by theme, sermon title, or content..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-red-600"
+                  className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base"
                 />
               </div>
             </div>
 
             {/* Theme Filter */}
             <div>
-              <label className="block text-sm font-bold mb-2">FILTER BY THEME</label>
+              <label className="block text-xs sm:text-sm font-bold mb-2">FILTER BY THEME</label>
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
                 <select
                   value={selectedTheme}
                   onChange={(e) => setSelectedTheme(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-red-600 appearance-none"
+                  className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 border-2 border-black focus:outline-none focus:ring-2 focus:ring-red-600 appearance-none text-sm sm:text-base"
                 >
                   {themeOptions.map((theme) => (
                     <option key={theme} value={theme}>
@@ -444,38 +444,38 @@ export default function SermonsPage() {
 
         {/* Themes Section */}
         <section>
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold">
               {selectedTheme === "All Themes" ? "SERMON THEMES" : selectedTheme.toUpperCase()}
             </h2>
-            <span className="text-sm text-gray-600">
+            <span className="text-xs sm:text-sm text-gray-600">
               {filteredThemes.length} theme{filteredThemes.length !== 1 ? "s" : ""} found
             </span>
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-8 sm:space-y-12">
             {filteredThemes.map((theme) => (
-              <div key={theme.id} className="border-2 border-black bg-white p-8">
+              <div key={theme.id} className="border-2 border-black bg-white p-4 sm:p-6 lg:p-8">
                 {/* Theme Header */}
-                <div className="mb-8">
-                  <h3 className="text-2xl font-bold mb-3">{theme.title}</h3>
-                  <p className="text-gray-700 mb-4">{theme.description}</p>
+                <div className="mb-6 sm:mb-8">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">{theme.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">{theme.description}</p>
                 </div>
 
                 {/* Associated Book (if exists) */}
                 {theme.book && (
-                  <div className="mb-8 p-6 bg-gray-50 border-2 border-gray-200">
-                    <div className="flex items-center gap-2 mb-4">
-                      <BookOpen className="w-5 h-5 text-red-600" />
-                      <h4 className="text-lg font-bold">ASSOCIATED BOOK</h4>
+                  <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-gray-50 border-2 border-gray-200">
+                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                      <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+                      <h4 className="text-base sm:text-lg font-bold">ASSOCIATED BOOK</h4>
                     </div>
 
-                    <div className="grid md:grid-cols-4 gap-6">
+                    <div className="grid md:grid-cols-4 gap-4 sm:gap-6">
                       <div className="md:col-span-1">
                         <img
                           src={theme.book.cover || "/placeholder.svg"}
                           alt={theme.book.title}
-                          className="w-full max-w-[200px] mx-auto border-2 border-black"
+                          className="w-full max-w-[150px] sm:max-w-[200px] mx-auto border-2 border-black"
                         />
                       </div>
 
@@ -484,12 +484,12 @@ export default function SermonsPage() {
                           <span className="bg-yellow-400 text-black px-2 py-1 text-xs font-bold">FEATURED</span>
                         </div>
 
-                        <h5 className="text-xl font-bold mb-1">{theme.book.title}</h5>
-                        <p className="text-gray-600 mb-3">{theme.book.subtitle}</p>
+                        <h5 className="text-lg sm:text-xl font-bold mb-1">{theme.book.title}</h5>
+                        <p className="text-sm sm:text-base text-gray-600 mb-2 sm:mb-3">{theme.book.subtitle}</p>
 
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                           <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
                             <span className="font-bold">{theme.book.rating}</span>
                             <span>({theme.book.reviews} reviews)</span>
                           </div>
@@ -499,7 +499,7 @@ export default function SermonsPage() {
 
                         <div className="flex items-center gap-4">
                           <Link href={`/books/${theme.book.id}`}>
-                            <Button className="bg-red-600 hover:bg-red-700 text-white">VIEW BOOK</Button>
+                            <Button className="bg-red-600 hover:bg-red-700 text-white text-sm sm:text-base px-3 sm:px-4 py-2">VIEW BOOK</Button>
                           </Link>
                         </div>
                       </div>
@@ -509,18 +509,18 @@ export default function SermonsPage() {
 
                 {/* Theme Sermons */}
                 <div>
-                  <h4 className="text-lg font-bold mb-4 border-b-2 border-black pb-2">
+                  <h4 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 border-b-2 border-black pb-2">
                     SERMONS IN THIS THEME ({theme.sermons.length})
                   </h4>
 
-                  <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                     {theme.sermons.map((sermon) => (
                       <Card
                         key={sermon.id}
                         className="border-2 border-gray-300 bg-white hover:bg-gray-50 transition-colors"
                       >
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between mb-3">
+                        <CardContent className="p-4 sm:p-6">
+                          <div className="flex items-start justify-between mb-2 sm:mb-3">
                             {sermon.featured && (
                               <span className="bg-red-600 text-white px-2 py-1 text-xs font-bold">FEATURED</span>
                             )}
@@ -537,9 +537,9 @@ export default function SermonsPage() {
                             </div>
                           </div>
 
-                          <h5 className="font-bold text-lg mb-3 leading-tight">{sermon.title}</h5>
+                          <h5 className="font-bold text-sm sm:text-base lg:text-lg mb-2 sm:mb-3 leading-tight">{sermon.title}</h5>
 
-                          <div className="flex items-center gap-3 text-xs text-gray-600 mb-3">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-600 mb-2 sm:mb-3">
                             <div className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
                               {sermon.date}
@@ -550,9 +550,9 @@ export default function SermonsPage() {
                             </div>
                           </div>
 
-                          <p className="text-sm text-gray-700 mb-4 line-clamp-3">{sermon.summary}</p>
+                          <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4 line-clamp-3">{sermon.summary}</p>
 
-                          <div className="mb-4">
+                          <div className="mb-3 sm:mb-4">
                             <p className="text-xs font-bold mb-1">SCRIPTURE:</p>
                             <p className="text-xs text-gray-600">{sermon.scripture}</p>
                           </div>
@@ -560,7 +560,7 @@ export default function SermonsPage() {
                           <Link href={`/sermons/${sermon.id}`}>
                             <Button
                               variant="outline"
-                              className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent text-sm"
+                              className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent text-xs sm:text-sm"
                             >
                               VIEW SERMON
                             </Button>
@@ -575,15 +575,15 @@ export default function SermonsPage() {
           </div>
 
           {filteredThemes.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-600">No themes found matching your search criteria.</p>
+            <div className="text-center py-8 sm:py-12">
+              <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">No themes found matching your search criteria.</p>
               <Button
                 onClick={() => {
                   setSearchTerm("")
                   setSelectedTheme("All Themes")
                 }}
                 variant="outline"
-                className="mt-4 border-2 border-black hover:bg-red-600 hover:text-white"
+                className="border-2 border-black hover:bg-red-600 hover:text-white text-sm sm:text-base px-4 py-2"
               >
                 CLEAR FILTERS
               </Button>
@@ -592,18 +592,18 @@ export default function SermonsPage() {
         </section>
 
         {/* Subscribe Section */}
-        <div className="border-2 border-black bg-white p-6 mt-16 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Bell className="w-6 h-6 text-red-600" />
-            <h2 className="text-2xl font-bold">NEVER MISS A SERMON</h2>
+        <div className="border-2 border-black bg-white p-4 sm:p-6 mt-12 sm:mt-16 text-center">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-3 sm:mb-4">
+            <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
+            <h2 className="text-lg sm:text-2xl font-bold">NEVER MISS A SERMON</h2>
           </div>
-          <p className="text-sm text-gray-700 mb-4">
+          <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4 max-w-2xl mx-auto">
             Subscribe to receive early notifications when new sermons are published. Stay connected with fresh biblical
             teaching and pastoral insights.
           </p>
           <Button
             onClick={() => setShowSubscribeModal(true)}
-            className="bg-red-600 hover:bg-red-700 text-white px-8 py-2"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 sm:px-8 py-2 text-sm sm:text-base"
           >
             SUBSCRIBE FOR NOTIFICATIONS
           </Button>
@@ -613,53 +613,53 @@ export default function SermonsPage() {
       {/* Subscribe Modal */}
       {showSubscribeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white border-4 border-black p-8 max-w-md w-full">
-            <h3 className="text-2xl font-bold mb-4">SUBSCRIBE TO SERMON NOTIFICATIONS</h3>
-            <p className="text-sm text-gray-700 mb-6">
+          <div className="bg-white border-4 border-black p-4 sm:p-6 lg:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4">SUBSCRIBE TO SERMON NOTIFICATIONS</h3>
+            <p className="text-xs sm:text-sm text-gray-700 mb-4 sm:mb-6">
               Get notified when new sermons are published. Join our community of believers staying connected to God's
               Word.
             </p>
 
-            <form className="space-y-4">
+            <form className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-bold mb-2">FULL NAME *</label>
+                <label className="block text-xs sm:text-sm font-bold mb-2">FULL NAME *</label>
                 <input
                   type="text"
                   required
-                  className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-red-600"
+                  className="w-full border-2 border-black p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold mb-2">EMAIL ADDRESS *</label>
+                <label className="block text-xs sm:text-sm font-bold mb-2">EMAIL ADDRESS *</label>
                 <input
                   type="email"
                   required
-                  className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-red-600"
+                  className="w-full border-2 border-black p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold mb-2">PREFERRED THEMES</label>
-                <div className="space-y-2 text-sm">
+                <label className="block text-xs sm:text-sm font-bold mb-2">PREFERRED THEMES</label>
+                <div className="space-y-2 text-xs sm:text-sm max-h-32 overflow-y-auto">
                   {themes.map((theme) => (
                     <label key={theme.id} className="flex items-center gap-2">
-                      <input type="checkbox" className="w-4 h-4" />
+                      <input type="checkbox" className="w-3 h-3 sm:w-4 sm:h-4" />
                       {theme.title}
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4">
-                <Button type="submit" className="flex-1 bg-red-600 hover:bg-red-700 text-white">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4">
+                <Button type="submit" className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm sm:text-base py-2">
                   SUBSCRIBE
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowSubscribeModal(false)}
-                  className="flex-1 border-2 border-black hover:bg-gray-100"
+                  className="flex-1 border-2 border-black hover:bg-gray-100 text-sm sm:text-base py-2"
                 >
                   CANCEL
                 </Button>
@@ -673,44 +673,44 @@ export default function SermonsPage() {
       {showCollectionModal && selectedThemeForModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white border-4 border-black max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold">{selectedThemeForModal.title.toUpperCase()} COLLECTION</h3>
+            <div className="p-4 sm:p-6 lg:p-8">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-2xl font-bold">{selectedThemeForModal.title.toUpperCase()} COLLECTION</h3>
                 <Button
                   onClick={() => setShowCollectionModal(false)}
                   variant="outline"
-                  className="border-2 border-black hover:bg-gray-100"
+                  className="border-2 border-black hover:bg-gray-100 px-2 sm:px-3 py-1 sm:py-2 text-sm sm:text-base"
                 >
                   ✕
                 </Button>
               </div>
 
-              <p className="text-gray-700 mb-8">{selectedThemeForModal.description}</p>
+              <p className="text-sm sm:text-base text-gray-700 mb-6 sm:mb-8">{selectedThemeForModal.description}</p>
 
               {/* Associated Book */}
               {selectedThemeForModal.book && (
-                <div className="mb-8 p-6 bg-gray-50 border-2 border-gray-200">
-                  <div className="flex items-center gap-2 mb-4">
-                    <BookOpen className="w-5 h-5 text-red-600" />
-                    <h4 className="text-lg font-bold">ASSOCIATED BOOK</h4>
+                <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-gray-50 border-2 border-gray-200">
+                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+                    <h4 className="text-base sm:text-lg font-bold">ASSOCIATED BOOK</h4>
                   </div>
 
-                  <div className="grid md:grid-cols-4 gap-6">
+                  <div className="grid md:grid-cols-4 gap-4 sm:gap-6">
                     <div className="md:col-span-1">
                       <img
                         src={selectedThemeForModal.book.cover || "/placeholder.svg"}
                         alt={selectedThemeForModal.book.title}
-                        className="w-full max-w-[150px] mx-auto border-2 border-black"
+                        className="w-full max-w-[120px] sm:max-w-[150px] mx-auto border-2 border-black"
                       />
                     </div>
 
                     <div className="md:col-span-3">
-                      <h5 className="text-xl font-bold mb-1">{selectedThemeForModal.book.title}</h5>
-                      <p className="text-gray-600 mb-3">{selectedThemeForModal.book.subtitle}</p>
+                      <h5 className="text-lg sm:text-xl font-bold mb-1">{selectedThemeForModal.book.title}</h5>
+                      <p className="text-sm sm:text-base text-gray-600 mb-2 sm:mb-3">{selectedThemeForModal.book.subtitle}</p>
 
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                         <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
                           <span className="font-bold">{selectedThemeForModal.book.rating}</span>
                           <span>({selectedThemeForModal.book.reviews} reviews)</span>
                         </div>
@@ -721,7 +721,7 @@ export default function SermonsPage() {
                       <div className="flex items-center gap-4">
                         <Link href={`/books/${selectedThemeForModal.book.id}`}>
                           <Button
-                            className="bg-red-600 hover:bg-red-700 text-white"
+                            className="bg-red-600 hover:bg-red-700 text-white text-sm sm:text-base px-3 sm:px-4 py-2"
                             onClick={() => setShowCollectionModal(false)}
                           >
                             VIEW BOOK
@@ -735,15 +735,15 @@ export default function SermonsPage() {
 
               {/* Sermons in Collection */}
               <div>
-                <h4 className="text-lg font-bold mb-4 border-b-2 border-black pb-2">
+                <h4 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 border-b-2 border-black pb-2">
                   SERMONS IN THIS COLLECTION ({selectedThemeForModal.sermons.length})
                 </h4>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                   {selectedThemeForModal.sermons.map((sermon, index) => (
                     <div
                       key={sermon.id}
-                      className="border-2 border-gray-300 bg-white hover:bg-gray-50 transition-colors p-4 cursor-pointer"
+                      className="border-2 border-gray-300 bg-white hover:bg-gray-50 transition-colors p-3 sm:p-4 cursor-pointer"
                       onClick={() => {
                         setShowCollectionModal(false)
                         window.location.href = `/sermons/${sermon.id}`
@@ -766,9 +766,9 @@ export default function SermonsPage() {
                         </div>
                       </div>
 
-                      <h5 className="font-bold text-sm mb-2 leading-tight">{sermon.title}</h5>
+                      <h5 className="font-bold text-xs sm:text-sm mb-2 leading-tight">{sermon.title}</h5>
 
-                      <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-600 mb-2">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           {sermon.date}

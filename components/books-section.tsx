@@ -32,16 +32,6 @@ const books = [
     featured: false,
     coverImage: "/images/righteous-shall-live-by-faith-cover.jpg",
   },
-  {
-    id: 3,
-    title: "SHEPHERDING GOD'S FLOCK",
-    subtitle: "Biblical Principles for Pastoral Ministry",
-    year: "2025",
-    description: "A comprehensive guide to faithful pastoral ministry rooted in Scripture and decades of experience.",
-    pages: 284,
-    comingSoon: true,
-    coverImage: "/placeholder.svg?height=300&width=200&text=Shepherding+God's+Flock",
-  },
 ]
 
 export function BooksSection() {
@@ -57,8 +47,8 @@ export function BooksSection() {
   return (
     <section id="books" className="mt-16">
       <div className="flex items-center justify-between mb-8 border-b-2 border-black pb-4">
-        <h2 className="text-4xl font-bold">FEATURED BOOKS</h2>
-        <Link href="/books" className="flex items-center gap-2 text-lg font-bold hover:text-red-600 transition-colors">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">FEATURED BOOKS</h2>
+        <Link href="/books" className="flex items-center gap-2 text-sm sm:text-base md:text-lg font-bold hover:text-red-600 transition-colors">
           ALL BOOKS
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -83,7 +73,7 @@ export function BooksSection() {
                     />
                     {book.comingSoon && (
                       <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <span className="bg-yellow-500 text-black px-3 py-2 text-sm font-bold">COMING SOON</span>
+                        <span className="bg-yellow-500 text-black px-3 py-2 text-xs font-bold">COMING SOON</span>
                       </div>
                     )}
                     {book.featured && !book.comingSoon && (
@@ -99,7 +89,7 @@ export function BooksSection() {
                   </div>
                 </div>
 
-                <h3 className="font-bold text-lg mb-2 text-center leading-tight">{book.title}</h3>
+                <h3 className="font-bold text-base md:text-lg mb-2 text-center leading-tight">{book.title}</h3>
                 <p className="text-sm text-gray-600 text-center mb-3">{book.subtitle}</p>
 
                 <div className="flex items-center justify-center gap-3 text-xs text-gray-600 mb-3">
@@ -189,8 +179,8 @@ export function BooksSection() {
 
                   {/* Book details */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-base mb-1 leading-tight">{book.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{book.subtitle}</p>
+                    <h3 className="font-bold text-sm sm:text-base mb-1 leading-tight">{book.title}</h3>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-2">{book.subtitle}</p>
 
                     <div className="flex items-center gap-2 text-xs text-gray-600 mb-2 flex-wrap">
                       <div className="flex items-center gap-1">
@@ -209,7 +199,7 @@ export function BooksSection() {
                       )}
                     </div>
 
-                    <p className="text-sm text-gray-700 mb-3 line-clamp-2">{book.description}</p>
+                    <p className="text-xs sm:text-sm text-gray-700 mb-3 line-clamp-2">{book.description}</p>
 
                     {book.comingSoon ? (
                       <Button

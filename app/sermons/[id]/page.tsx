@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, use } from "react"
 import { Header } from "@/components/header"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
@@ -1074,7 +1074,7 @@ const mockComments = [
   },
 ]
 
-export default function SermonViewPage({ params }: { params: { id: string } }) {
+export default function SermonViewPage({ params }: { params: Promise<{ id: string }> }) {
   const [activeTab, setActiveTab] = useState<"text" | "video" | "audio">("text")
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -1091,7 +1091,9 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
 
-  const sermon = getSermonById(params.id)
+  const resolvedParams = use(params)
+  const sermonId = Number.parseInt(resolvedParams.id)
+  const sermon = getSermonById(resolvedParams.id)
   const themeNavigation = sermon
     ? getThemeNavigation(sermon.id, sermon.category)
     : { previous: null, next: null, currentIndex: -1 }
@@ -1099,7 +1101,7 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [params.id])
+  }, [resolvedParams.id])
 
   useEffect(() => {
     // Set default tab to text
@@ -1115,12 +1117,12 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
       <div className="min-h-screen bg-[#f5f1e8]">
         <Header />
         <Navigation />
-        <main className="container mx-auto px-4 py-12 text-center">
-          <h1 className="text-4xl font-bold mb-4">Sermon Not Found</h1>
-          <p className="text-gray-600 mb-8">The sermon you're looking for doesn't exist.</p>
+        <main className="container mx-auto px-4 sm:px-6 lg:px-4 py-8 sm:py-12 text-center">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Sermon Not Found</h1>
+          <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">The sermon you're looking for doesn't exist.</p>
           <Link href="/sermons">
-            <Button className="bg-red-600 hover:bg-red-700 text-white">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+            <Button className="bg-red-600 hover:bg-red-700 text-white text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3">
+              <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Back to Sermons
             </Button>
           </Link>
@@ -1231,65 +1233,67 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
       <Header />
       <Navigation />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-4 py-6 sm:py-8">
         {/* Back Button */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <Link href="/sermons">
-            <Button variant="outline" className="border-2 border-black hover:bg-black hover:text-white bg-transparent">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+            <Button variant="outline" className="border-2 border-black hover:bg-black hover:text-white bg-transparent text-sm sm:text-base px-3 sm:px-4 py-2">
+              <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Back to Sermons
             </Button>
           </Link>
         </div>
 
         {/* Sermon Header */}
-        <div className="border-2 border-black bg-white p-8 mb-8">
-          <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div className="border-2 border-black bg-white p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-4 sm:mb-6">
             <div className="flex-1">
-              <span className="bg-red-600 text-white px-3 py-1 text-sm font-bold mb-4 inline-block">
+              <span className="bg-red-600 text-white px-2 sm:px-3 py-1 text-xs sm:text-sm font-bold mb-3 sm:mb-4 inline-block">
                 {sermon.category}
               </span>
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">{sermon.title}</h1>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 leading-tight">{sermon.title}</h1>
 
-              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                 <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                   {sermon.date}
                 </div>
                 <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                   {sermon.duration}
                 </div>
               </div>
 
-              <p className="text-lg text-gray-700 mb-4">{sermon.summary}</p>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-700 mb-3 sm:mb-4">{sermon.summary}</p>
 
-              <div className="mb-4">
-                <p className="font-bold text-sm mb-2">SCRIPTURE REFERENCE:</p>
-                <p className="text-sm italic">
+              <div className="mb-3 sm:mb-4">
+                <p className="font-bold text-xs sm:text-sm mb-2">SCRIPTURE REFERENCE:</p>
+                <p className="text-xs sm:text-sm italic">
                   "{sermon.fullScripture}" - {sermon.scripture}
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 lg:flex-col lg:gap-3">
               <Button
                 onClick={handleShare}
                 variant="outline"
-                className="border-2 border-black hover:bg-gray-100 bg-transparent"
+                className="border-2 border-black hover:bg-gray-100 bg-transparent px-3 sm:px-4 py-2"
               >
-                <Share2 className="w-4 h-4" />
+                <Share2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline ml-2">Share</span>
               </Button>
-              <Button variant="outline" className="border-2 border-black hover:bg-gray-100 bg-transparent">
-                <Download className="w-4 h-4" />
+              <Button variant="outline" className="border-2 border-black hover:bg-gray-100 bg-transparent px-3 sm:px-4 py-2">
+                <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline ml-2">Download</span>
               </Button>
             </div>
           </div>
 
           {/* Key Points */}
-          <div className="border-t-2 border-black pt-6">
-            <h3 className="font-bold mb-3">KEY POINTS:</h3>
-            <ul className="grid md:grid-cols-3 gap-2 text-sm">
+          <div className="border-t-2 border-black pt-4 sm:pt-6">
+            <h3 className="font-bold mb-2 sm:mb-3 text-sm sm:text-base">KEY POINTS:</h3>
+            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs sm:text-sm">
               {sermon.keyPoints.map((point, index) => (
                 <li key={index} className="flex items-start gap-2">
                   <span className="text-red-600 font-bold">•</span>
@@ -1301,9 +1305,9 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* Media Tabs */}
-        <div className="border-2 border-black bg-white mb-8">
+        <div className="border-2 border-black bg-white mb-6 sm:mb-8">
           <div className="border-b-2 border-black">
-            <div className="flex">
+            <div className="flex flex-wrap">
               {sermon.hasText && (
                 <button
                   onClick={() => {
@@ -1312,11 +1316,11 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
                     if (videoRef.current) videoRef.current.pause()
                     if (audioRef.current) audioRef.current.pause()
                   }}
-                  className={`flex items-center gap-2 px-6 py-4 font-bold text-sm border-r-2 border-black transition-colors ${
+                  className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-6 py-3 sm:py-4 font-bold text-xs sm:text-sm border-r-2 border-black transition-colors flex-1 sm:flex-none justify-center sm:justify-start ${
                     activeTab === "text" ? "bg-red-600 text-white" : "hover:bg-gray-100"
                   }`}
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
                   TEXT
                 </button>
               )}
@@ -1327,11 +1331,11 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
                     setIsPlaying(false)
                     if (audioRef.current) audioRef.current.pause()
                   }}
-                  className={`flex items-center gap-2 px-6 py-4 font-bold text-sm ${sermon.hasAudio ? "border-r-2 border-black" : ""} transition-colors ${
+                  className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-6 py-3 sm:py-4 font-bold text-xs sm:text-sm ${sermon.hasAudio ? "border-r-2 border-black" : ""} transition-colors flex-1 sm:flex-none justify-center sm:justify-start ${
                     activeTab === "video" ? "bg-red-600 text-white" : "hover:bg-gray-100"
                   }`}
                 >
-                  <Video className="w-4 h-4" />
+                  <Video className="w-3 h-3 sm:w-4 sm:h-4" />
                   VIDEO
                 </button>
               )}
@@ -1342,34 +1346,34 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
                     setIsPlaying(false)
                     if (videoRef.current) videoRef.current.pause()
                   }}
-                  className={`flex items-center gap-2 px-6 py-4 font-bold text-sm transition-colors ${
+                  className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-6 py-3 sm:py-4 font-bold text-xs sm:text-sm transition-colors flex-1 sm:flex-none justify-center sm:justify-start ${
                     activeTab === "audio" ? "bg-red-600 text-white" : "hover:bg-gray-100"
                   }`}
                 >
-                  <Headphones className="w-4 h-4" />
+                  <Headphones className="w-3 h-3 sm:w-4 sm:h-4" />
                   AUDIO
                 </button>
               )}
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {/* Text Content */}
             {activeTab === "text" && sermon.hasText && (
-              <div className="prose prose-lg max-w-none">
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <BookOpen className="w-5 h-5 text-red-600" />
-                    <h3 className="text-lg font-bold">Full Sermon Text</h3>
+              <div className="prose prose-sm sm:prose-lg max-w-none">
+                <div className="bg-gray-50 p-4 sm:p-6 rounded-lg">
+                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+                    <h3 className="text-base sm:text-lg font-bold">Full Sermon Text</h3>
                   </div>
-                  <div className="whitespace-pre-line text-sm leading-relaxed">{sermon.fullText}</div>
+                  <div className="whitespace-pre-line text-xs sm:text-sm leading-relaxed">{sermon.fullText}</div>
                 </div>
               </div>
             )}
 
             {/* Video Player */}
             {activeTab === "video" && sermon.hasVideo && (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="relative bg-black rounded-lg overflow-hidden">
                   <video
                     ref={videoRef}
@@ -1386,34 +1390,32 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
                 </div>
 
                 {/* Video Controls */}
-                <div className="space-y-3 md:space-y-4">
-                  <div className="flex items-center gap-2 md:gap-4">
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                     <Button
                       onClick={togglePlayPause}
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 md:px-6 py-2"
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 sm:px-6 py-2 text-sm sm:text-base"
                     >
-                      {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                      <span className="hidden sm:inline ml-2">{isPlaying ? "PAUSE" : "PLAY"}</span>
+                      {isPlaying ? <Pause className="w-3 h-3 sm:w-4 sm:h-4" /> : <Play className="w-3 h-3 sm:w-4 sm:h-4" />}
+                      <span className="ml-2">{isPlaying ? "PAUSE" : "PLAY"}</span>
                     </Button>
 
-                    <div className="flex-1">
+                    <div className="flex-1 flex items-center gap-2 sm:gap-3">
+                      <span className="text-xs font-mono whitespace-nowrap">{formatTime(currentTime)}</span>
                       <input
                         type="range"
                         min="0"
                         max={duration || 0}
                         value={currentTime}
                         onChange={handleSeek}
-                        className="w-full"
+                        className="flex-1"
                       />
+                      <span className="text-xs font-mono whitespace-nowrap">{formatTime(duration)}</span>
                     </div>
-
-                    <span className="text-xs md:text-sm font-mono whitespace-nowrap">
-                      {formatTime(currentTime)} / {formatTime(duration)}
-                    </span>
                   </div>
 
-                  <div className="flex items-center gap-2 justify-center md:justify-start">
-                    <Volume2 className="w-4 h-4" />
+                  <div className="flex items-center justify-center gap-2">
+                    <Volume2 className="w-3 h-3 sm:w-4 sm:h-4" />
                     <input
                       type="range"
                       min="0"
@@ -1421,7 +1423,7 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
                       step="0.1"
                       value={volume}
                       onChange={handleVolumeChange}
-                      className="w-20 md:w-24"
+                      className="w-20 sm:w-24"
                     />
                     <span className="text-xs w-8">{Math.round(volume * 100)}%</span>
                   </div>
@@ -1431,11 +1433,11 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
 
             {/* Audio Player */}
             {activeTab === "audio" && sermon.hasAudio && (
-              <div className="space-y-6">
-                <div className="text-center py-12 bg-gray-100 rounded-lg">
-                  <Headphones className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-xl font-bold mb-2">Audio Sermon</h3>
-                  <p className="text-gray-600">Listen to the full sermon audio</p>
+              <div className="space-y-4 sm:space-y-6">
+                <div className="text-center py-8 sm:py-12 bg-gray-100 rounded-lg">
+                  <Headphones className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-gray-400" />
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">Audio Sermon</h3>
+                  <p className="text-sm sm:text-base text-gray-600">Listen to the full sermon audio</p>
                 </div>
 
                 <audio
@@ -1452,16 +1454,16 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
 
                 {/* Audio Controls */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-center gap-4">
-                    <Button onClick={togglePlayPause} className="bg-red-600 hover:bg-red-700 text-white px-8 py-3">
-                      {isPlaying ? <Pause className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
+                  <div className="flex items-center justify-center">
+                    <Button onClick={togglePlayPause} className="bg-red-600 hover:bg-red-700 text-white px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base">
+                      {isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />}
                       {isPlaying ? "PAUSE" : "PLAY"}
                     </Button>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-mono w-16">{formatTime(currentTime)}</span>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                      <span className="text-xs sm:text-sm font-mono w-12 sm:w-16">{formatTime(currentTime)}</span>
                       <div className="flex-1">
                         <input
                           type="range"
@@ -1472,11 +1474,11 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
                           className="w-full"
                         />
                       </div>
-                      <span className="text-sm font-mono w-16">{formatTime(duration)}</span>
+                      <span className="text-xs sm:text-sm font-mono w-12 sm:w-16">{formatTime(duration)}</span>
                     </div>
 
                     <div className="flex items-center justify-center gap-2">
-                      <Volume2 className="w-4 h-4" />
+                      <Volume2 className="w-3 h-3 sm:w-4 sm:h-4" />
                       <input
                         type="range"
                         min="0"
@@ -1484,7 +1486,7 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
                         step="0.1"
                         value={volume}
                         onChange={handleVolumeChange}
-                        className="w-32"
+                        className="w-24 sm:w-32"
                       />
                     </div>
                   </div>
@@ -1496,18 +1498,18 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
 
         {/* Theme Navigation */}
         {currentTheme && (themeNavigation.previous || themeNavigation.next) && (
-          <div className="border-2 border-black bg-white p-6 mb-8">
-            <h2 className="text-xl font-bold mb-4 border-b-2 border-black pb-2">THEME NAVIGATION</h2>
-            <div className="grid md:grid-cols-2 gap-4">
+          <div className="border-2 border-black bg-white p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 border-b-2 border-black pb-2">THEME NAVIGATION</h2>
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
               {themeNavigation.previous && (
                 <Link href={`/sermons/${themeNavigation.previous.id}`}>
                   <Card className="border-2 border-black hover:bg-gray-50 transition-colors h-full">
-                    <CardContent className="p-4 flex items-center gap-3">
-                      <ChevronLeft className="w-6 h-6 text-red-600 flex-shrink-0" />
-                      <div className="flex-1">
+                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                      <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
                         <p className="text-xs text-gray-600 mb-1">PREVIOUS SERMON</p>
-                        <h3 className="font-bold text-sm leading-tight">{themeNavigation.previous.title}</h3>
-                        <p className="text-xs text-gray-500 mt-1">{currentTheme.title}</p>
+                        <h3 className="font-bold text-xs sm:text-sm leading-tight truncate">{themeNavigation.previous.title}</h3>
+                        <p className="text-xs text-gray-500 mt-1 truncate">{currentTheme.title}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -1516,13 +1518,13 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
               {themeNavigation.next && (
                 <Link href={`/sermons/${themeNavigation.next.id}`}>
                   <Card className="border-2 border-black hover:bg-gray-50 transition-colors h-full">
-                    <CardContent className="p-4 flex items-center gap-3">
-                      <div className="flex-1 text-right">
+                    <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                      <div className="flex-1 text-right min-w-0">
                         <p className="text-xs text-gray-600 mb-1">NEXT SERMON</p>
-                        <h3 className="font-bold text-sm leading-tight">{themeNavigation.next.title}</h3>
-                        <p className="text-xs text-gray-500 mt-1">{currentTheme.title}</p>
+                        <h3 className="font-bold text-xs sm:text-sm leading-tight truncate">{themeNavigation.next.title}</h3>
+                        <p className="text-xs text-gray-500 mt-1 truncate">{currentTheme.title}</p>
                       </div>
-                      <ChevronRight className="w-6 h-6 text-red-600 flex-shrink-0" />
+                      <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 flex-shrink-0" />
                     </CardContent>
                   </Card>
                 </Link>
@@ -1533,12 +1535,12 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
 
         {/* All Sermons in Theme */}
         {currentTheme && (
-          <section className="border-2 border-black bg-white p-8 mb-8">
-            <h2 className="text-2xl font-bold mb-4 border-b-2 border-black pb-4">
+          <section className="border-2 border-black bg-white p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4 border-b-2 border-black pb-3 sm:pb-4">
               ALL SERMONS IN "{currentTheme.title.toUpperCase()}"
             </h2>
-            <p className="text-gray-600 mb-6">{currentTheme.description}</p>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">{currentTheme.description}</p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {currentTheme.sermons.map((themeSermon, index) => (
                 <Card
                   key={themeSermon.id}
@@ -1546,12 +1548,12 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
                     themeSermon.id === sermon.id ? "border-red-600 bg-red-50" : "border-black hover:bg-gray-50"
                   }`}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <span className="bg-red-600 text-white px-2 py-1 text-xs font-bold rounded">{index + 1}</span>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-sm leading-tight mb-2">{themeSermon.title}</h3>
-                        <p className="text-xs text-gray-600 mb-3">{themeSermon.date}</p>
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <span className="bg-red-600 text-white px-2 py-1 text-xs font-bold rounded flex-shrink-0">{index + 1}</span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-xs sm:text-sm leading-tight mb-2">{themeSermon.title}</h3>
+                        <p className="text-xs text-gray-600 mb-2 sm:mb-3">{themeSermon.date}</p>
                         {themeSermon.id === sermon.id ? (
                           <Button disabled className="w-full bg-red-600 text-white text-xs py-2">
                             CURRENTLY VIEWING
@@ -1576,19 +1578,19 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
         )}
 
         {/* Comments Section */}
-        <section className="border-2 border-black bg-white p-8 mb-8">
-          <div className="flex items-center gap-2 mb-6">
-            <MessageCircle className="w-6 h-6 text-red-600" />
-            <h2 className="text-2xl font-bold">COMMENTS ({comments.length})</h2>
+        <section className="border-2 border-black bg-white p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
+          <div className="flex items-center gap-2 mb-4 sm:mb-6">
+            <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold">COMMENTS ({comments.length})</h2>
           </div>
 
           {/* Comment Form */}
-          <div className="border-2 border-black p-6 mb-8">
-            <h3 className="text-lg font-bold mb-4">SHARE YOUR THOUGHTS</h3>
-            <form onSubmit={handleCommentSubmit} className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+          <div className="border-2 border-black p-4 sm:p-6 mb-6 sm:mb-8">
+            <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4">SHARE YOUR THOUGHTS</h3>
+            <form onSubmit={handleCommentSubmit} className="space-y-3 sm:space-y-4">
+              <div className="grid md:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-bold mb-2">
+                  <label htmlFor="name" className="block text-xs sm:text-sm font-bold mb-2">
                     FULL NAME *
                   </label>
                   <input
@@ -1598,12 +1600,12 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
                     value={newComment.name}
                     onChange={handleInputChange}
                     required
-                    className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-red-600"
+                    className="w-full border-2 border-black p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base"
                     placeholder="Enter your full name"
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-bold mb-2">
+                  <label htmlFor="email" className="block text-xs sm:text-sm font-bold mb-2">
                     EMAIL ADDRESS *
                   </label>
                   <input
@@ -1613,13 +1615,13 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
                     value={newComment.email}
                     onChange={handleInputChange}
                     required
-                    className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-red-600"
+                    className="w-full border-2 border-black p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base"
                     placeholder="Enter your email address"
                   />
                 </div>
               </div>
               <div>
-                <label htmlFor="comment" className="block text-sm font-bold mb-2">
+                <label htmlFor="comment" className="block text-xs sm:text-sm font-bold mb-2">
                   YOUR COMMENT *
                 </label>
                 <textarea
@@ -1629,20 +1631,20 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
                   onChange={handleInputChange}
                   required
                   rows={4}
-                  className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-red-600 resize-none"
+                  className="w-full border-2 border-black p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-red-600 resize-none text-sm sm:text-base"
                   placeholder="Share how this sermon blessed you or ask questions..."
                 ></textarea>
               </div>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 sm:px-6 py-2 text-sm sm:text-base"
               >
                 {isSubmitting ? (
                   "SUBMITTING..."
                 ) : (
                   <>
-                    <Send className="w-4 h-4 mr-2" />
+                    <Send className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                     SUBMIT COMMENT
                   </>
                 )}
@@ -1651,42 +1653,42 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
           </div>
 
           {/* Comments List */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {comments.map((comment) => (
-              <div key={comment.id} className="border-l-4 border-red-600 pl-6 py-4">
+              <div key={comment.id} className="border-l-4 border-red-600 pl-3 sm:pl-6 py-3 sm:py-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h4 className="font-bold text-lg">{comment.name}</h4>
-                    <p className="text-sm text-gray-600">
+                    <h4 className="font-bold text-sm sm:text-base lg:text-lg">{comment.name}</h4>
+                    <p className="text-xs sm:text-sm text-gray-600">
                       {comment.date} at {comment.time}
                     </p>
                   </div>
                 </div>
-                <p className="text-gray-700 leading-relaxed">{comment.comment}</p>
+                <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{comment.comment}</p>
               </div>
             ))}
           </div>
 
           {comments.length === 0 && (
-            <div className="text-center py-8 text-gray-600">
-              <MessageCircle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <p>No comments yet. Be the first to share your thoughts!</p>
+            <div className="text-center py-6 sm:py-8 text-gray-600">
+              <MessageCircle className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-gray-400" />
+              <p className="text-sm sm:text-base">No comments yet. Be the first to share your thoughts!</p>
             </div>
           )}
         </section>
 
         {/* Other Themes */}
-        <section className="border-2 border-black bg-white p-8">
-          <h2 className="text-2xl font-bold mb-6 border-b-2 border-black pb-4">OTHER THEMES YOU MIGHT ENJOY</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <section className="border-2 border-black bg-white p-4 sm:p-6 lg:p-8">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-4 sm:mb-6 border-b-2 border-black pb-3 sm:pb-4">OTHER THEMES YOU MIGHT ENJOY</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {Object.entries(themes)
               .filter(([key]) => key !== sermon.category)
               .map(([key, theme]) => (
                 <Card key={key} className="border-2 border-black hover:bg-gray-50 transition-colors">
-                  <CardContent className="p-6">
-                    <h3 className="font-bold text-lg mb-3">{theme.title}</h3>
-                    <p className="text-sm text-gray-600 mb-4 leading-relaxed">{theme.description}</p>
-                    <div className="mb-4">
+                  <CardContent className="p-4 sm:p-6">
+                    <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3">{theme.title}</h3>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 leading-relaxed">{theme.description}</p>
+                    <div className="mb-3 sm:mb-4">
                       <p className="text-xs text-gray-500 mb-2">{theme.sermons.length} SERMONS</p>
                       <div className="space-y-1">
                         {theme.sermons.slice(0, 2).map((themeSermon) => (
@@ -1702,7 +1704,7 @@ export default function SermonViewPage({ params }: { params: { id: string } }) {
                     <Link href={`/sermons/${theme.sermons[0].id}`}>
                       <Button
                         variant="outline"
-                        className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent text-sm"
+                        className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent text-xs sm:text-sm"
                       >
                         EXPLORE THEME
                       </Button>

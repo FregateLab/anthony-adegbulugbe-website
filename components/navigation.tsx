@@ -22,7 +22,7 @@ export const Navigation = () => {
         {/* Mobile Header */}
         <div className="flex md:hidden justify-between items-center py-2">
           {/* Logo */}
-          <Link href="/" className="text-xl font-bold tracking-wide hover:opacity-80 transition-opacity">
+          <Link href="/" className="text-lg font-bold tracking-wide hover:opacity-80 transition-opacity">
             A.A
           </Link>
 
@@ -36,8 +36,8 @@ export const Navigation = () => {
           </button>
         </div>
 
-        {/* Desktop/Tablet Navigation - unchanged */}
-        <div className="hidden md:flex flex-wrap justify-center md:justify-between items-center py-2 md:py-4 text-xs md:text-sm font-medium tracking-wide gap-1 md:gap-0">
+        {/* Desktop/Tablet Navigation */}
+        <div className="hidden md:flex flex-wrap justify-center md:justify-between items-center py-2 md:py-4 text-xs sm:text-sm md:text-base font-medium tracking-wide gap-1 md:gap-0">
           <Link href="/" className="px-2 md:px-4 py-2 hover:bg-black hover:text-white transition-colors">
             HOME
           </Link>
@@ -49,14 +49,6 @@ export const Navigation = () => {
           >
             ABOUT
           </Link>
-          {/* <Link
-            href="/archive"
-            className={`px-2 md:px-4 py-2 hover:bg-black hover:text-white transition-colors ${
-              pathname.startsWith("/archive") ? "bg-black text-white" : ""
-            }`}
-          >
-            ARCHIVE
-          </Link> */}
           <Link
             href="/books"
             className={`px-2 md:px-4 py-2 hover:bg-black hover:text-white transition-colors ${
@@ -94,7 +86,7 @@ export const Navigation = () => {
         {/* Mobile Navigation Menu */}
         {isMenuOpen && (
           <div className="md:hidden border-t-2 border-black bg-[#f5f1e8] py-2">
-            <div className="flex flex-col text-sm font-medium tracking-wide">
+            <div className="flex flex-col text-xs sm:text-sm font-medium tracking-wide">
               <Link
                 href="/"
                 className="px-4 py-3 hover:bg-black hover:text-white transition-colors border-b border-gray-300"
@@ -111,15 +103,6 @@ export const Navigation = () => {
               >
                 ABOUT
               </Link>
-              {/* <Link
-                href="/archive"
-                className={`px-4 py-3 hover:bg-black hover:text-white transition-colors border-b border-gray-300 ${
-                  pathname.startsWith("/archive") ? "bg-black text-white" : ""
-                }`}
-                onClick={closeMenu}
-              >
-                ARCHIVE
-              </Link> */}
               <Link
                 href="/books"
                 className={`px-4 py-3 hover:bg-black hover:text-white transition-colors border-b border-gray-300 ${

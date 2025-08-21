@@ -9,13 +9,13 @@ export function HeroSection() {
       <div className="grid lg:grid-cols-2 gap-6 md:gap-8 min-h-[400px] md:min-h-[600px]">
         {/* Left content */}
         <div className="border-2 border-black p-4 md:p-8 bg-white">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-6 md:mb-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-6 md:mb-8">
             PASTORAL
             <br />
             MINISTRY
           </h2>
 
-          <div className="space-y-4 md:space-y-6 text-base md:text-lg leading-relaxed">
+          <div className="space-y-4 md:space-y-6 text-sm sm:text-base md:text-lg leading-relaxed">
             <p className="font-medium">
               SERVING GOD'S PEOPLE THROUGH
               <br />
@@ -25,7 +25,7 @@ export function HeroSection() {
             </p>
 
             <div className="bg-red-600 text-white p-3 md:p-4 mt-6 md:mt-8">
-              <p className="font-bold text-center text-sm md:text-base">
+              <p className="font-bold text-center text-xs sm:text-sm md:text-base">
                 "The calling to shepherd God's people is both a privilege and a sacred responsibility that requires
                 faithful devotion to His Word."
               </p>
