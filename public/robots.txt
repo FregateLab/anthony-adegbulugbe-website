@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+# Block admin areas
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
+Disallow: /_next/
+
+# Block thank you pages (to prevent indexing of conversion pages)
+Disallow: /thank-you/
+
+# Allow search engines to access CSS and JS files
+Allow: /css/
+Allow: /js/
+Allow: /images/
+
+# Sitemap location
+Sitemap: https://aoa.ng/sitemap.xml
+
+# Crawl delay (optional - be careful with this)
+# Crawl-delay: 1
