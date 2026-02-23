@@ -7,6 +7,7 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, Clock, Search, Filter, Bell, BookOpen, Star, Download, Eye, Loader2 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import Link from "next/link"
 import Image from "next/image"
 import { publicApi, type PublicTheme, type RecentSermon } from "@/lib/api"
@@ -25,6 +26,7 @@ export default function SermonsPage() {
   const [error, setError] = useState<string | null>(null)
   const [showNotification, setShowNotification] = useState(false)
   const [hasMore, setHasMore] = useState(true)
+  const [modalTheme, setModalTheme] = useState<PublicTheme | null>(null)
   const loaderRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -338,7 +340,7 @@ export default function SermonsPage() {
                   </div>
                   
                   <Button
-                    onClick={() => setSelectedTheme(theme.id)}
+                    onClick={() => setModalTheme(theme)}
                     variant="outline"
                     className="w-full border-2 border-black hover:bg-red-600 hover:text-white"
                   >
@@ -454,6 +456,55 @@ export default function SermonsPage() {
           )}
         </section>
       </main>
+
+      {/* Theme Sermons Modal */}
+      <Dialog open={!!modalTheme} onOpenChange={(open) => !open && setModalTheme(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-[#f5f1e8]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">
+              {modalTheme?.name}
+            </DialogTitle>
+            <DialogDescription>{modalTheme?.description}</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
+            {modalTheme && allSermons
+              .filter(sermon => sermon.theme.toLowerCase() === modalTheme.name.toLowerCase())
+              .map((sermon) => (
+                <Card key={sermon.id} className="border-2 border-black bg-white">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${sermon.themeColor}`}>
+                        {sermon.theme}
+                      </span>
+                      <div className="flex items-center gap-3 text-xs text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {sermon.date}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {sermon.duration}
+                        </div>
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-bold mb-2">{sermon.title}</h3>
+                    <p className="text-sm text-gray-700 mb-3 line-clamp-2">{sermon.description}</p>
+                    <Link href={`/sermons/${sermon.id}`}>
+                      <Button className="w-full bg-red-600 hover:bg-red-700 text-white" size="sm">
+                        READ SERMON
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+
+            {modalTheme && allSermons.filter(sermon => sermon.theme.toLowerCase() === modalTheme.name.toLowerCase()).length === 0 && (
+              <p className="text-center text-gray-600 py-4">No sermons available for this theme yet.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>
