@@ -3,7 +3,9 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
+import { booksApi } from "@/lib/api"
 import { Header } from "@/components/header"
 import { Navigation } from "@/components/navigation"
 import { AdminHeader } from "@/components/admin-header"
@@ -15,6 +17,7 @@ import Link from "next/link"
 
 export default function NewBookPage() {
   const { isAuthenticated, isLoading, requireAuth } = useAuth()
+  const router = useRouter()
   const [formData, setFormData] = useState({
     title: "",
     subtitle: "",
@@ -31,6 +34,7 @@ export default function NewBookPage() {
     coverImage: null as File | null,
     pdfFile: null as File | null,
   })
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     requireAuth()
@@ -73,11 +77,46 @@ export default function NewBookPage() {
     setFormData((prev) => ({ ...prev, pdfFile: file }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, this would submit to an API
-    console.log("Book data:", formData)
-    alert("Book created successfully!")
+    setSubmitting(true)
+
+    try {
+      const bookData = {
+        title: formData.title,
+        subtitle: formData.subtitle || null,
+        description: formData.description,
+        pages: formData.pages ? parseInt(formData.pages) : null,
+        isbn: formData.isbn || null,
+        publisher: formData.publisher,
+        category: formData.category,
+        publication_year: formData.year,
+        featured: formData.featured,
+        key_themes: formData.keyThemes || null,
+        table_of_contents: formData.tableOfContents || null,
+        excerpt: formData.excerpt || null,
+        status: 'draft' as const
+      }
+
+      const createdBook = await booksApi.create(bookData)
+
+      // Handle file uploads if files are selected
+      if (formData.coverImage) {
+        await booksApi.uploadCover(createdBook.id, formData.coverImage)
+      }
+
+      if (formData.pdfFile) {
+        await booksApi.uploadPdf(createdBook.id, formData.pdfFile)
+      }
+
+      alert("Book created successfully!")
+      router.push("/admin")
+    } catch (error: any) {
+      console.error("Failed to create book:", error)
+      alert(error.message || "Failed to create book. Please try again.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -330,9 +369,13 @@ export default function NewBookPage() {
               <Eye className="w-4 h-4 mr-2" />
               Preview
             </Button>
-            <Button type="submit" className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white">
+            <Button 
+              type="submit" 
+              disabled={submitting}
+              className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+            >
               <Save className="w-4 h-4 mr-2" />
-              Create Book
+              {submitting ? 'Creating Book...' : 'Create Book'}
             </Button>
           </div>
         </form>

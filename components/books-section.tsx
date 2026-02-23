@@ -1,40 +1,81 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { BookOpen, Download, Eye, Star, Calendar } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-
-const books = [
-  {
-    id: 1,
-    title: "JOURNEY OF LOVE",
-    subtitle: "Messages on the Love of God",
-    year: "2025",
-    description: "A profound exploration of God's love through powerful messages delivered during the Advent season.",
-    pages: 91,
-    rating: 4.9,
-    reviews: 156,
-    featured: true,
-    coverImage: "/placeholder.svg?height=300&width=200&text=Journey+of+Love",
-  },
-  {
-    id: 2,
-    title: "THE RIGHTEOUS SHALL LIVE BY FAITH",
-    subtitle: "Messages on Faith and Righteous Living",
-    year: "2025",
-    description:
-      "A comprehensive exploration of faith through biblical messages on righteous living and spiritual growth.",
-    pages: 105,
-    rating: 4.8,
-    reviews: 89,
-    featured: false,
-    coverImage: "/images/righteous-shall-live-by-faith-cover.jpg",
-  },
-]
+import { publicApi, type PublicBook } from "@/lib/api"
 
 export function BooksSection() {
+  const [books, setBooks] = useState<PublicBook[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        setLoading(true)
+        const booksData = await publicApi.books.getFeatured()
+        setBooks(booksData.slice(0, 3)) // Show maximum 3 books for homepage
+        setError(null)
+      } catch (err) {
+        console.error('Failed to fetch books:', err)
+        setError('Failed to load books')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBooks()
+  }, [])
+
+  if (loading) {
+    return (
+      <section id="books" className="mt-16">
+        <div className="flex items-center justify-between mb-8 border-b-2 border-black pb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">FEATURED BOOKS</h2>
+          <Link href="/books" className="flex items-center gap-2 text-sm sm:text-base md:text-lg font-bold hover:text-red-600 transition-colors">
+            ALL BOOKS
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading books...</p>
+        </div>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section id="books" className="mt-16">
+        <div className="flex items-center justify-between mb-8 border-b-2 border-black pb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">FEATURED BOOKS</h2>
+          <Link href="/books" className="flex items-center gap-2 text-sm sm:text-base md:text-lg font-bold hover:text-red-600 transition-colors">
+            ALL BOOKS
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline" 
+            className="border-2 border-black hover:bg-gray-100"
+          >
+            Try Again
+          </Button>
+        </div>
+      </section>
+    )
+  }
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -65,23 +106,18 @@ export function BooksSection() {
                 <div className="text-center mb-4">
                   <div className="w-full h-48 bg-black border-2 border-black overflow-hidden mb-3 relative">
                     <Image
-                      src={book.coverImage || "/placeholder.svg"}
+                      src={book.cover_image || "/placeholder.svg"}
                       alt={book.title}
                       width={200}
                       height={300}
                       className="w-full h-full object-cover"
                     />
-                    {book.comingSoon && (
-                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <span className="bg-yellow-500 text-black px-3 py-2 text-xs font-bold">COMING SOON</span>
-                      </div>
-                    )}
-                    {book.featured && !book.comingSoon && (
+                    {book.featured && (
                       <div className="absolute top-2 left-2">
                         <span className="bg-red-600 text-white px-2 py-1 text-xs font-bold">FEATURED</span>
                       </div>
                     )}
-                    {!book.featured && !book.comingSoon && (
+                    {!book.featured && (
                       <div className="absolute top-2 left-2">
                         <span className="bg-green-600 text-white px-2 py-1 text-xs font-bold">NEW</span>
                       </div>
@@ -101,7 +137,7 @@ export function BooksSection() {
                     <BookOpen className="w-3 h-3" />
                     {book.pages} pages
                   </div>
-                  {book.rating && (
+                  {book.rating && book.rating > 0 && (
                     <div className="flex items-center gap-1">
                       {renderStars(book.rating)}
                       <span className="text-xs">({book.reviews})</span>
@@ -111,31 +147,21 @@ export function BooksSection() {
 
                 <p className="text-sm text-gray-700 text-center mb-4">{book.description}</p>
 
-                {book.comingSoon ? (
-                  <Button
-                    variant="outline"
-                    className="w-full border-2 border-black hover:bg-gray-100 bg-transparent text-sm"
-                    disabled
-                  >
-                    COMING SOON
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
-                    <Link href={`/books/${book.id}`} className="flex-1">
-                      <Button
-                        variant="outline"
-                        className="w-full border-2 border-black hover:bg-gray-100 bg-transparent text-sm"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        VIEW
-                      </Button>
-                    </Link>
-                    <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm">
-                      <Download className="w-3 h-3 mr-1" />
-                      DOWNLOAD
+                <div className="flex gap-2">
+                  <Link href={`/books/${book.id}`} className="flex-1">
+                    <Button
+                      variant="outline"
+                      className="w-full border-2 border-black hover:bg-gray-100 bg-transparent text-sm"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      VIEW
                     </Button>
-                  </div>
-                )}
+                  </Link>
+                  <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm">
+                    <Download className="w-3 h-3 mr-1" />
+                    DOWNLOAD
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -153,23 +179,18 @@ export function BooksSection() {
                   <div className="flex-shrink-0">
                     <div className="w-20 h-28 bg-black border-2 border-black overflow-hidden relative">
                       <Image
-                        src={book.coverImage || "/placeholder.svg"}
+                        src={book.cover_image || "/placeholder.svg"}
                         alt={book.title}
                         width={80}
                         height={112}
                         className="w-full h-full object-cover"
                       />
-                      {book.comingSoon && (
-                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                          <span className="bg-yellow-500 text-black px-1 py-1 text-xs font-bold">SOON</span>
-                        </div>
-                      )}
-                      {book.featured && !book.comingSoon && (
+                      {book.featured && (
                         <div className="absolute top-1 left-1">
                           <span className="bg-red-600 text-white px-1 py-0.5 text-xs font-bold">FEATURED</span>
                         </div>
                       )}
-                      {!book.featured && !book.comingSoon && (
+                      {!book.featured && (
                         <div className="absolute top-1 left-1">
                           <span className="bg-green-600 text-white px-1 py-0.5 text-xs font-bold">NEW</span>
                         </div>
@@ -191,7 +212,7 @@ export function BooksSection() {
                         <BookOpen className="w-3 h-3" />
                         {book.pages}p
                       </div>
-                      {book.rating && (
+                      {book.rating && book.rating > 0 && (
                         <div className="flex items-center gap-1">
                           {renderStars(book.rating)}
                           <span className="text-xs">({book.reviews})</span>
@@ -201,31 +222,21 @@ export function BooksSection() {
 
                     <p className="text-xs sm:text-sm text-gray-700 mb-3 line-clamp-2">{book.description}</p>
 
-                    {book.comingSoon ? (
-                      <Button
-                        variant="outline"
-                        className="w-full border-2 border-black hover:bg-gray-100 bg-transparent text-sm"
-                        disabled
-                      >
-                        COMING SOON
-                      </Button>
-                    ) : (
-                      <div className="flex gap-2">
-                        <Link href={`/books/${book.id}`} className="flex-1">
-                          <Button
-                            variant="outline"
-                            className="w-full border-2 border-black hover:bg-gray-100 bg-transparent text-sm"
-                          >
-                            <Eye className="w-3 h-3 mr-1" />
-                            VIEW
-                          </Button>
-                        </Link>
-                        <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm">
-                          <Download className="w-3 h-3 mr-1" />
-                          GET
+                    <div className="flex gap-2">
+                      <Link href={`/books/${book.id}`} className="flex-1">
+                        <Button
+                          variant="outline"
+                          className="w-full border-2 border-black hover:bg-gray-100 bg-transparent text-sm"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          VIEW
                         </Button>
-                      </div>
-                    )}
+                      </Link>
+                      <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm">
+                        <Download className="w-3 h-3 mr-1" />
+                        GET
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>

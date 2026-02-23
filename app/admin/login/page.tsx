@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/use-auth"
 import { Header } from "@/components/header"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
@@ -27,21 +28,23 @@ export default function AdminLoginPage() {
     setError("")
   }
 
+  const { login } = useAuth()
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError("")
 
-    // Simple authentication - in production, use proper authentication
-    if (formData.username === "admin" && formData.password === "password123") {
-      // Store authentication token
-      localStorage.setItem("adminAuth", "true")
-      localStorage.setItem("adminUser", formData.username)
+    try {
+      await login({
+        username: formData.username,
+        password: formData.password
+      })
 
       // Redirect to admin dashboard
       router.push("/admin")
-    } else {
-      setError("Invalid username or password")
+    } catch (error: any) {
+      setError(error.message || "Invalid username or password")
     }
 
     setIsLoading(false)

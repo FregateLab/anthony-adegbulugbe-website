@@ -16,7 +16,7 @@ export function AdminHeader() {
               <User className="w-4 h-4 text-white" />
             </div>
             <div>
-              <p className="text-sm font-bold">Welcome back, {user}</p>
+              <p className="text-sm font-bold">Welcome back, {user?.username}</p>
               <p className="text-xs text-gray-600">Administrator</p>
             </div>
           </div>

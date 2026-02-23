@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
+import { dashboardApi, booksApi, sermonsApi, themesApi, type DashboardStats, type Activity, type Book, type Sermon, type Theme } from "@/lib/api"
 import { Header } from "@/components/header"
 import { Navigation } from "@/components/navigation"
 import { AdminHeader } from "@/components/admin-header"
@@ -28,98 +29,69 @@ import {
   X,
 } from "lucide-react"
 
-// Mock data - in a real app, this would come from a database
-const mockStats = {
-  totalBooks: 2,
-  totalSermons: 14,
-  totalThemes: 2,
-  totalViews: 15420,
-  recentActivity: [
-    { type: "sermon", action: "viewed", item: "Faith When We Face Trials", time: "2 hours ago" },
-    { type: "book", action: "downloaded", item: "The Righteous Shall Live by Faith", time: "4 hours ago" },
-    { type: "sermon", action: "viewed", item: "What is Faith?", time: "6 hours ago" },
-    { type: "book", action: "viewed", item: "Journey of Love", time: "1 day ago" },
-  ],
+// Data fetched from API
+interface DashboardData {
+  stats: DashboardStats
+  recentActivity: Activity[]
+  books: Book[]
+  sermons: Sermon[]
+  themes: Theme[]
 }
-
-const mockBooks = [
-  {
-    id: 2,
-    title: "THE RIGHTEOUS SHALL LIVE BY FAITH",
-    subtitle: "Messages on Faith and Righteous Living",
-    status: "published",
-    featured: true,
-    pages: 105,
-    downloads: 234,
-    publishDate: "2025-01-01",
-  },
-  {
-    id: 1,
-    title: "JOURNEY OF LOVE",
-    subtitle: "Messages on the Love of God",
-    status: "published",
-    featured: false,
-    pages: 91,
-    downloads: 456,
-    publishDate: "2024-12-01",
-  },
-]
-
-const mockSermons = [
-  {
-    id: 20,
-    title: "FAITH WHEN WE FACE TRIALS",
-    theme: "The Righteous Shall Live by Faith",
-    date: "July 5, 2020",
-    duration: "48 min",
-    featured: true,
-    status: "published",
-    views: 1250,
-  },
-  {
-    id: 21,
-    title: "WHAT IS FAITH?",
-    theme: "The Righteous Shall Live by Faith",
-    date: "November 6, 2016",
-    duration: "45 min",
-    featured: true,
-    status: "published",
-    views: 980,
-  },
-  {
-    id: 1,
-    title: "HIS BANNER OVER US IS LOVE",
-    theme: "Journey of Love",
-    date: "July 1, 2017",
-    duration: "30 min",
-    featured: false,
-    status: "published",
-    views: 750,
-  },
-]
 
 export default function AdminPage() {
   const { isAuthenticated, isLoading, requireAuth } = useAuth()
   const [activeTab, setActiveTab] = useState("dashboard")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [books, setBooks] = useState(mockBooks)
-  const [sermons, setSermons] = useState(mockSermons)
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+  const [dataLoading, setDataLoading] = useState(true)
   const [showThemeModal, setShowThemeModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [bookToDelete, setBookToDelete] = useState<{ id: number; title: string } | null>(null)
   const [newTheme, setNewTheme] = useState({
     name: "",
     description: "",
-    color: "bg-blue-100 text-blue-800",
-    status: "active",
+    color_class: "bg-blue-100 text-blue-800",
+    status: "active" as const,
   })
 
   useEffect(() => {
     requireAuth()
   }, [isAuthenticated, isLoading])
 
-  // Show loading while checking authentication
-  if (isLoading) {
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchDashboardData()
+    }
+  }, [isAuthenticated])
+
+  const fetchDashboardData = async () => {
+    try {
+      setDataLoading(true)
+      
+      const [stats, activity, booksResponse, sermonsResponse, themesResponse] = await Promise.all([
+        dashboardApi.getStats(),
+        dashboardApi.getActivity(),
+        booksApi.getAll({ limit: 20 }),
+        sermonsApi.getAll({ limit: 20 }),
+        themesApi.getAll({ limit: 20 })
+      ])
+
+      setDashboardData({
+        stats,
+        recentActivity: activity,
+        books: booksResponse?.books,
+        sermons: sermonsResponse?.sermons,
+        themes: themesResponse?.themes,
+      })
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error)
+    } finally {
+      setDataLoading(false)
+    }
+  }
+
+  // Show loading while checking authentication or fetching data
+  if (isLoading || (isAuthenticated && dataLoading)) {
     return (
       <div className="min-h-screen bg-[#f5f1e8] flex items-center justify-center">
         <div className="text-center">
@@ -135,11 +107,41 @@ export default function AdminPage() {
     return null
   }
 
-  const handleToggleFeatured = (type: "book" | "sermon", id: number) => {
-    if (type === "book") {
-      setBooks(books.map((book) => (book.id === id ? { ...book, featured: !book.featured } : book)))
-    } else {
-      setSermons(sermons.map((sermon) => (sermon.id === id ? { ...sermon, featured: !sermon.featured } : sermon)))
+  // Don't render if data hasn't loaded yet
+  if (!dashboardData) {
+    return (
+      <div className="min-h-screen bg-[#f5f1e8] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-bold">Failed to load dashboard data</p>
+          <button 
+            onClick={fetchDashboardData} 
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const handleToggleFeatured = async (type: "book" | "sermon", id: number) => {
+    try {
+      if (type === "book") {
+        const updatedBook = await booksApi.toggleFeatured(id)
+        setDashboardData(prev => prev ? {
+          ...prev,
+          books: prev.books.map((book) => (book.id === id ? updatedBook : book))
+        } : null)
+      } else {
+        const updatedSermon = await sermonsApi.toggleFeatured(id)
+        setDashboardData(prev => prev ? {
+          ...prev,
+          sermons: prev.sermons.map((sermon) => (sermon.id === id ? updatedSermon : sermon))
+        } : null)
+      }
+    } catch (error) {
+      console.error('Failed to toggle featured status:', error)
+      alert('Failed to update featured status. Please try again.')
     }
   }
 
@@ -148,12 +150,21 @@ export default function AdminPage() {
     setShowDeleteConfirm(true)
   }
 
-  const confirmDeleteBook = () => {
+  const confirmDeleteBook = async () => {
     if (bookToDelete) {
-      setBooks(books.filter((book) => book.id !== bookToDelete.id))
-      setShowDeleteConfirm(false)
-      setBookToDelete(null)
-      alert("Book deleted successfully!")
+      try {
+        await booksApi.delete(bookToDelete.id)
+        setDashboardData(prev => prev ? {
+          ...prev,
+          books: prev.books.filter((book) => book.id !== bookToDelete.id)
+        } : null)
+        setShowDeleteConfirm(false)
+        setBookToDelete(null)
+        alert("Book deleted successfully!")
+      } catch (error) {
+        console.error('Failed to delete book:', error)
+        alert('Failed to delete book. Please try again.')
+      }
     }
   }
 
@@ -162,18 +173,42 @@ export default function AdminPage() {
     setNewTheme((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleCreateTheme = (e: React.FormEvent) => {
+  const handleCreateTheme = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, this would submit to an API
-    console.log("Theme data:", newTheme)
-    alert("Theme created successfully!")
-    setShowThemeModal(false)
-    setNewTheme({
-      name: "",
-      description: "",
-      color: "bg-blue-100 text-blue-800",
-      status: "active",
-    })
+    try {
+      const createdTheme = await themesApi.create(newTheme)
+      setDashboardData(prev => prev ? {
+        ...prev,
+        themes: [...prev.themes, createdTheme]
+      } : null)
+      setShowThemeModal(false)
+      setNewTheme({
+        name: "",
+        description: "",
+        color_class: "bg-blue-100 text-blue-800",
+        status: "active",
+      })
+      alert("Theme created successfully!")
+    } catch (error) {
+      console.error('Failed to create theme:', error)
+      alert('Failed to create theme. Please try again.')
+    }
+  }
+
+  const handleDeleteTheme = async (theme: Theme) => {
+    if (confirm(`Are you sure you want to delete the theme "${theme.name}"? This will also remove it from any associated sermons.`)) {
+      try {
+        await themesApi.delete(theme.id)
+        setDashboardData(prev => prev ? {
+          ...prev,
+          themes: prev.themes.filter(t => t.id !== theme.id)
+        } : null)
+        alert('Theme deleted successfully!')
+      } catch (error) {
+        console.error('Failed to delete theme:', error)
+        alert('Failed to delete theme. It may have associated sermons.')
+      }
+    }
   }
 
   const colorOptions = [
@@ -201,7 +236,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs md:text-sm font-medium text-gray-600">Total Books</p>
-                <p className="text-xl md:text-3xl font-bold">{mockStats.totalBooks}</p>
+                <p className="text-xl md:text-3xl font-bold">{dashboardData.stats.totalBooks}</p>
               </div>
               <BookOpen className="w-6 h-6 md:w-8 md:h-8 text-red-600" />
             </div>
@@ -213,7 +248,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs md:text-sm font-medium text-gray-600">Total Sermons</p>
-                <p className="text-xl md:text-3xl font-bold">{mockStats.totalSermons}</p>
+                <p className="text-xl md:text-3xl font-bold">{dashboardData.stats.totalSermons}</p>
               </div>
               <FileText className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
             </div>
@@ -225,7 +260,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs md:text-sm font-medium text-gray-600">Themes</p>
-                <p className="text-xl md:text-3xl font-bold">{mockStats.totalThemes}</p>
+                <p className="text-xl md:text-3xl font-bold">{dashboardData.stats.totalThemes}</p>
               </div>
               <Settings className="w-6 h-6 md:w-8 md:h-8 text-green-600" />
             </div>
@@ -237,7 +272,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs md:text-sm font-medium text-gray-600">Total Views</p>
-                <p className="text-xl md:text-3xl font-bold">{mockStats.totalViews.toLocaleString()}</p>
+                <p className="text-xl md:text-3xl font-bold">{dashboardData.stats.totalViews.toLocaleString()}</p>
               </div>
               <BarChart3 className="w-6 h-6 md:w-8 md:h-8 text-purple-600" />
             </div>
@@ -250,7 +285,7 @@ export default function AdminPage() {
         <CardContent className="p-4 md:p-6">
           <h3 className="text-lg md:text-xl font-bold mb-4">Recent Activity</h3>
           <div className="space-y-3 md:space-y-4">
-            {mockStats.recentActivity.map((activity, index) => (
+            {dashboardData.recentActivity.map((activity, index) => (
               <div key={index} className="flex items-center gap-3 md:gap-4 p-2 md:p-3 bg-gray-50 rounded">
                 {activity.type === "book" ? (
                   <BookOpen className="w-4 h-4 md:w-5 md:h-5 text-red-600 flex-shrink-0" />
@@ -285,7 +320,7 @@ export default function AdminPage() {
       </div>
 
       <div className="grid gap-4">
-        {books.map((book) => (
+        {dashboardData.books.map((book) => (
           <Card key={book.id} className="border-2 border-black bg-white">
             <CardContent className="p-4 md:p-6">
               <div className="space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
@@ -310,7 +345,7 @@ export default function AdminPage() {
                     <span>{book.pages} pages</span>
                     <span>{book.downloads} downloads</span>
                     <span className="hidden sm:inline">
-                      Published: {new Date(book.publishDate).toLocaleDateString()}
+                      Published: {book.publication_year || 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -372,7 +407,7 @@ export default function AdminPage() {
       </div>
 
       <div className="grid gap-4">
-        {sermons.map((sermon) => (
+        {dashboardData.sermons.map((sermon) => (
           <Card key={sermon.id} className="border-2 border-black bg-white">
             <CardContent className="p-4 md:p-6">
               <div className="space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
@@ -392,11 +427,11 @@ export default function AdminPage() {
                       {sermon.status.toUpperCase()}
                     </span>
                   </div>
-                  <p className="text-gray-600 mb-2 text-sm md:text-base">Theme: {sermon.theme}</p>
+                  <p className="text-gray-600 mb-2 text-sm md:text-base">Theme: {sermon.theme?.name || 'No theme'}</p>
                   <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-500">
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      {sermon.date}
+                      {new Date(sermon.sermon_date).toLocaleDateString()}
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
@@ -463,87 +498,53 @@ export default function AdminPage() {
       </div>
 
       <div className="grid gap-4">
-        <Card className="border-2 border-black bg-white">
-          <CardContent className="p-4 md:p-6">
-            <div className="space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base md:text-lg font-bold mb-2">The Righteous Shall Live by Faith</h3>
-                <p className="text-gray-600 mb-2 text-sm md:text-base">
-                  A comprehensive exploration of living by faith
-                </p>
-                <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-500">
-                  <span>5 sermons</span>
-                  <span>1 book</span>
-                  <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">Active</span>
+        {dashboardData.themes.map((theme) => (
+          <Card key={theme.id} className="border-2 border-black bg-white">
+            <CardContent className="p-4 md:p-6">
+              <div className="space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base md:text-lg font-bold mb-2">{theme.name}</h3>
+                  <p className="text-gray-600 mb-2 text-sm md:text-base">
+                    {theme.description}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-500">
+                    <span>{theme.sermon_count || 0} sermons</span>
+                    <span>{theme.book_count || 0} books</span>
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      theme.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {theme.status.charAt(0).toUpperCase() + theme.status.slice(1)}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 justify-end md:justify-start">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-2 border-black hover:bg-gray-100 bg-transparent p-2"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-2 border-black hover:bg-gray-100 bg-transparent p-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDeleteTheme(theme)}
+                    className="border-2 border-black hover:bg-red-100 bg-transparent p-2"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-600" />
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-2 justify-end md:justify-start">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-2 border-black hover:bg-gray-100 bg-transparent p-2"
-                >
-                  <Eye className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-2 border-black hover:bg-gray-100 bg-transparent p-2"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-2 border-black hover:bg-red-100 bg-transparent p-2"
-                >
-                  <Trash2 className="w-4 h-4 text-red-600" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-black bg-white">
-          <CardContent className="p-4 md:p-6">
-            <div className="space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base md:text-lg font-bold mb-2">Journey of Love</h3>
-                <p className="text-gray-600 mb-2 text-sm md:text-base">
-                  Exploring God's love through the advent season
-                </p>
-                <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-500">
-                  <span>9 sermons</span>
-                  <span>1 book</span>
-                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 justify-end md:justify-start">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-2 border-black hover:bg-gray-100 bg-transparent p-2"
-                >
-                  <Eye className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-2 border-black hover:bg-gray-100 bg-transparent p-2"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-2 border-black hover:bg-red-100 bg-transparent p-2"
-                >
-                  <Trash2 className="w-4 h-4 text-red-600" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   )
@@ -727,15 +728,15 @@ export default function AdminPage() {
                         <label key={option.value} className="cursor-pointer">
                           <input
                             type="radio"
-                            name="color"
+                            name="color_class"
                             value={option.value}
-                            checked={newTheme.color === option.value}
+                            checked={newTheme.color_class === option.value}
                             onChange={handleThemeInputChange}
                             className="sr-only"
                           />
                           <div
                             className={`p-2 md:p-3 border-2 rounded text-center text-xs md:text-sm font-bold transition-colors ${
-                              newTheme.color === option.value ? "border-black" : "border-gray-300 hover:border-gray-400"
+                              newTheme.color_class === option.value ? "border-black" : "border-gray-300 hover:border-gray-400"
                             } ${option.preview}`}
                           >
                             {option.label}
@@ -763,7 +764,7 @@ export default function AdminPage() {
                     <h3 className="text-sm md:text-base font-bold mb-3">PREVIEW</h3>
                     <div className="border-2 border-gray-300 bg-white p-3 md:p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center justify-between mb-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${newTheme.color}`}>
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${newTheme.color_class}`}>
                           0 Sermons • 0 Books
                         </span>
                       </div>
