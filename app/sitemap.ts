@@ -9,7 +9,8 @@ async function fetchPublicData<T>(endpoint: string): Promise<T | null> {
     })
     if (!res.ok) return null
     const data = await res.json()
-    return data.data || data
+    const result = data.data || data
+    return Array.isArray(result) ? result : (result.results || result.items || [])
   } catch {
     return null
   }
