@@ -9,7 +9,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { BookOpen, Download, Eye, Star, Calendar, User, Heart } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { publicApi, type PublicBook } from "@/lib/api"
+import { type PublicBook, getFileUrl } from "@/lib/api"
+import { cachedApi } from "@/lib/cached-api"
 
 export default function BooksPage() {
   const [books, setBooks] = useState<PublicBook[]>([])
@@ -21,7 +22,7 @@ export default function BooksPage() {
     const fetchBooks = async () => {
       try {
         setLoading(true)
-        const booksData = await publicApi.books.getAll()
+        const booksData = await cachedApi.books.getAll()
         setBooks(booksData)
         
         // Set first featured book or first book as featured
@@ -155,11 +156,11 @@ export default function BooksPage() {
                 <div className="text-center">
                   <div className="w-full max-w-xs sm:max-w-sm mx-auto h-64 sm:h-80 lg:h-96 bg-black border-2 border-black overflow-hidden mb-4 sm:mb-6">
                     <Image
-                      src={featuredBook.cover_image || "/placeholder.svg"}
+                      src={getFileUrl(featuredBook.cover_image) || "/placeholder.svg"}
                       alt={featuredBook.title}
                       width={350}
                       height={500}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-top"
                     />
                   </div>
 
@@ -381,11 +382,11 @@ export default function BooksPage() {
                     <div className="text-center mb-3 sm:mb-4">
                       <div className="w-full h-40 sm:h-48 bg-black border-2 border-black overflow-hidden mb-2 sm:mb-3 relative">
                         <Image
-                          src={book.cover_image || "/placeholder.svg"}
+                          src={getFileUrl(book.cover_image) || "/placeholder.svg"}
                           alt={book.title}
                           width={200}
                           height={240}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover object-top"
                         />
                       </div>
                     </div>

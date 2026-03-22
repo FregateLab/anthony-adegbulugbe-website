@@ -27,12 +27,13 @@ export function useAuth() {
         try {
           // Verify token with backend
           const verificationResult = await authApi.verify()
-          
+
           if (verificationResult.valid) {
+            // Token is valid — fetch fresh user data
+            const currentUser = await authApi.getCurrentUser()
             setIsAuthenticated(true)
-            setUser(verificationResult.admin)
-            // Update stored user data in case it changed
-            localStorage.setItem("adminUser", JSON.stringify(verificationResult.admin))
+            setUser(currentUser)
+            localStorage.setItem("adminUser", JSON.stringify(currentUser))
           } else {
             // Token invalid, clear storage
             clearAuth()

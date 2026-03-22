@@ -6,7 +6,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { BookOpen, Download, Eye, Star, Calendar } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { publicApi, type PublicBook } from "@/lib/api"
+import { type PublicBook } from "@/lib/api"
+import { cachedApi } from "@/lib/cached-api"
 
 export function BooksSection() {
   const [books, setBooks] = useState<PublicBook[]>([])
@@ -17,7 +18,7 @@ export function BooksSection() {
     const fetchBooks = async () => {
       try {
         setLoading(true)
-        const booksData = await publicApi.books.getFeatured()
+        const booksData = await cachedApi.books.getFeatured()
         setBooks(booksData.slice(0, 3)) // Show maximum 3 books for homepage
         setError(null)
       } catch (err) {
@@ -49,6 +50,10 @@ export function BooksSection() {
         </div>
       </section>
     )
+  }
+
+  if (books.length === 0 && !error) {
+    return null
   }
 
   if (error) {
@@ -110,7 +115,7 @@ export function BooksSection() {
                       alt={book.title}
                       width={200}
                       height={300}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-top"
                     />
                     {book.featured && (
                       <div className="absolute top-2 left-2">
@@ -183,7 +188,7 @@ export function BooksSection() {
                         alt={book.title}
                         width={80}
                         height={112}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-top"
                       />
                       {book.featured && (
                         <div className="absolute top-1 left-1">

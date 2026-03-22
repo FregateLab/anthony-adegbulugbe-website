@@ -6,11 +6,12 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Calendar, Clock, Search, Filter, Bell, BookOpen, Star, Download, Eye, Loader2 } from "lucide-react"
+import { Calendar, Clock, Search, Filter, Bell, BookOpen, Star, Download, Eye, Loader2, Mail } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import Link from "next/link"
 import Image from "next/image"
-import { publicApi, type PublicTheme, type RecentSermon } from "@/lib/api"
+import { publicApi, getFileUrl, type PublicTheme, type RecentSermon } from "@/lib/api"
+import { cachedApi } from "@/lib/cached-api"
 
 const SERMONS_PER_PAGE = 6
 
@@ -27,6 +28,9 @@ export default function SermonsPage() {
   const [showNotification, setShowNotification] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [modalTheme, setModalTheme] = useState<PublicTheme | null>(null)
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+  const [subscribeEmail, setSubscribeEmail] = useState("")
+  const [subscribing, setSubscribing] = useState(false)
   const loaderRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -34,8 +38,8 @@ export default function SermonsPage() {
       try {
         setLoading(true)
         const [themesData, sermonsData] = await Promise.all([
-          publicApi.themes.getAll(),
-          publicApi.sermons.getRecent()
+          cachedApi.themes.getAll(),
+          cachedApi.sermons.getRecent()
         ])
 
         // Sort sermons by sermon_date in ascending order (oldest first)
@@ -128,8 +132,25 @@ export default function SermonsPage() {
   }, [hasMore, loadingMore, loadMoreSermons])
 
   const handleNotifyMe = () => {
-    setShowNotification(true)
-    setTimeout(() => setShowNotification(false), 3000)
+    setShowSubscribeModal(true)
+  }
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!subscribeEmail.trim()) return
+
+    setSubscribing(true)
+    try {
+      await publicApi.subscribe.submit(subscribeEmail)
+      setShowSubscribeModal(false)
+      setSubscribeEmail("")
+      setShowNotification(true)
+      setTimeout(() => setShowNotification(false), 3000)
+    } catch (error: any) {
+      alert(error.message || "Failed to subscribe. Please try again.")
+    } finally {
+      setSubscribing(false)
+    }
   }
 
   if (loading) {
@@ -257,7 +278,7 @@ export default function SermonsPage() {
         {/* Notification Banner */}
         {showNotification && (
           <div className="mb-6 bg-green-100 border-2 border-green-600 text-green-800 px-4 py-3 flex items-center justify-between">
-            <span className="font-medium">✓ You'll be notified when new sermons are available!</span>
+            <span className="font-medium">✓ You&apos;ve been subscribed! You&apos;ll be notified when new sermons are available.</span>
             <Button 
               onClick={() => setShowNotification(false)}
               variant="ghost"
@@ -274,18 +295,38 @@ export default function SermonsPage() {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {themes.map((theme) => (
-              <Card key={theme.id} className="border-2 border-black bg-white hover:bg-gray-50 transition-colors">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${theme.color}`}>
-                      {theme.sermons.length} Sermon{theme.sermons.length !== 1 ? "s" : ""}
-                      {theme.book && " • 1 Book"}
-                    </span>
+              <Card key={theme.id} className="border-2 border-black bg-white hover:bg-gray-50 transition-colors overflow-hidden">
+                {theme.image && (
+                  <div className="relative h-40">
+                    <img
+                      src={getFileUrl(theme.image)}
+                      alt={theme.name}
+                      className="w-full h-full object-cover object-top"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                    <div className="absolute bottom-3 left-4 right-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${theme.color}`}>
+                        {theme.sermons.length} Sermon{theme.sermons.length !== 1 ? "s" : ""}
+                        {theme.book && " • 1 Book"}
+                      </span>
+                      <h3 className="text-lg font-bold text-white mt-2">{theme.name}</h3>
+                    </div>
                   </div>
-                  
-                  <h3 className="text-lg font-bold mb-3">{theme.name}</h3>
+                )}
+                <CardContent className="p-6">
+                  {!theme.image && (
+                    <>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${theme.color}`}>
+                          {theme.sermons.length} Sermon{theme.sermons.length !== 1 ? "s" : ""}
+                          {theme.book && " • 1 Book"}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-bold mb-3">{theme.name}</h3>
+                    </>
+                  )}
                   <p className="text-sm text-gray-700 mb-4">{theme.description}</p>
-                  
+
                   {/* Associated Book */}
                   {theme.book && (
                     <div className="bg-gray-50 p-3 rounded mb-4">
@@ -296,7 +337,7 @@ export default function SermonsPage() {
                             alt={theme.book.title}
                             width={48}
                             height={64}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover object-top"
                           />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -327,7 +368,7 @@ export default function SermonsPage() {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="space-y-2 mb-4">
                     {theme.recentSermons.slice(0, 2).map((sermon) => (
                       <div key={sermon.id} className="text-xs text-gray-600">
@@ -338,7 +379,7 @@ export default function SermonsPage() {
                       <div className="text-xs text-gray-500">+ {theme.sermons.length - 2} more sermons</div>
                     )}
                   </div>
-                  
+
                   <Button
                     onClick={() => setModalTheme(theme)}
                     variant="outline"
@@ -391,48 +432,45 @@ export default function SermonsPage() {
             </div>
           ) : (
             <>
-              <div className="grid gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {displayedSermons.map((sermon) => (
-                  <Card key={sermon.id} className="border-2 border-black bg-white hover:bg-gray-50 transition-colors">
-                    <CardContent className="p-6">
-                      <div className="grid md:grid-cols-4 gap-6">
-                        <div className="md:col-span-3">
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${sermon.themeColor}`}>
-                              {sermon.theme}
-                            </span>
-                            <div className="flex items-center gap-4 text-sm text-gray-600">
-                              <div className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
-                                {sermon.date}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-4 h-4" />
-                                {sermon.duration}
-                              </div>
-                            </div>
-                          </div>
-
-                          <h3 className="text-xl font-bold mb-3">{sermon.title}</h3>
-                          <p className="text-gray-700 mb-4 leading-relaxed">{sermon.description}</p>
-                        </div>
-
-                        <div className="flex flex-col justify-center">
-                          <Link href={`/sermons/${sermon.id}`}>
-                            <Button className="w-full bg-red-600 hover:bg-red-700 text-white mb-3">
-                              READ SERMON
-                            </Button>
-                          </Link>
-
-                          {/* Media availability indicators */}
-                          <div className="flex justify-center gap-2">
-                            <div className="flex items-center gap-1 text-xs text-gray-600">
-                              <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
-                              <span>TEXT</span>
-                            </div>
-                          </div>
+                  <Card key={sermon.id} className="border-2 border-black bg-white hover:bg-gray-50 transition-colors overflow-hidden flex flex-col">
+                    {sermon.theme_image && (
+                      <div className="relative h-44">
+                        <img src={getFileUrl(sermon.theme_image)} alt={sermon.theme} className="w-full h-full object-cover object-top" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                        <div className="absolute bottom-3 left-4 right-4">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${sermon.themeColor}`}>
+                            {sermon.theme}
+                          </span>
                         </div>
                       </div>
+                    )}
+                    <CardContent className="p-5 flex flex-col flex-1">
+                      {!sermon.theme_image && (
+                        <div className="mb-3">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${sermon.themeColor}`}>
+                            {sermon.theme}
+                          </span>
+                        </div>
+                      )}
+                      <h3 className="text-lg font-bold mb-2 line-clamp-2">{sermon.title}</h3>
+                      <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {sermon.date}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {sermon.duration}
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-700 mb-4 line-clamp-3 flex-1">{sermon.description}</p>
+                      <Link href={`/sermons/${sermon.id}`}>
+                        <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
+                          READ SERMON
+                        </Button>
+                      </Link>
                     </CardContent>
                   </Card>
                 ))}
@@ -456,6 +494,38 @@ export default function SermonsPage() {
           )}
         </section>
       </main>
+
+      {/* Subscribe Modal */}
+      <Dialog open={showSubscribeModal} onOpenChange={setShowSubscribeModal}>
+        <DialogContent className="sm:max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Mail className="w-5 h-5 text-red-600" />
+              SUBSCRIBE FOR UPDATES
+            </DialogTitle>
+            <DialogDescription>
+              Enter your email to receive notifications when new sermons are published.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubscribe} className="space-y-4 mt-4">
+            <input
+              type="email"
+              value={subscribeEmail}
+              onChange={(e) => setSubscribeEmail(e.target.value)}
+              placeholder="Enter your email address"
+              required
+              className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-red-600"
+            />
+            <Button
+              type="submit"
+              disabled={subscribing}
+              className="w-full bg-red-600 hover:bg-red-700 text-white py-3 font-bold"
+            >
+              {subscribing ? "SUBSCRIBING..." : "SUBSCRIBE"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Theme Sermons Modal */}
       <Dialog open={!!modalTheme} onOpenChange={(open) => !open && setModalTheme(null)}>

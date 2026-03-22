@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { sermonsApi, themesApi, Sermon, Theme } from "@/lib/api"
+import { sermonsApi, themesApi, Sermon, Theme, getFileUrl } from "@/lib/api"
 import { Header } from "@/components/header"
 import { Navigation } from "@/components/navigation"
 import { AdminHeader } from "@/components/admin-header"
@@ -191,10 +191,15 @@ export default function EditSermonPage() {
 
       // Upload new PDF file if selected
       if (newPdfFile) {
-        await sermonsApi.uploadPdf(originalSermon.id, newPdfFile)
+        const uploadResult = await sermonsApi.uploadPdf(originalSermon.id, newPdfFile)
+        if (uploadResult?.text_extracted) {
+          alert(`Sermon updated successfully!\n\nPDF text extracted: ${uploadResult.word_count?.toLocaleString()} words (~${uploadResult.estimated_reading_minutes} min read)`)
+        } else {
+          alert("Sermon updated successfully!\n\nNote: PDF text could not be extracted automatically.")
+        }
+      } else {
+        alert("Sermon updated successfully!")
       }
-
-      alert("Sermon updated successfully!")
       router.push(`/admin/sermons/${originalSermon.id}/view`)
     } catch (error: any) {
       console.error("Failed to update sermon:", error)
@@ -551,7 +556,7 @@ export default function EditSermonPage() {
                           {originalSermon.audio_file.split('/').pop()}
                         </p>
                         <a
-                          href={originalSermon.audio_file}
+                          href={getFileUrl(originalSermon.audio_file)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-green-600 hover:underline"
@@ -574,7 +579,7 @@ export default function EditSermonPage() {
                           {originalSermon.pdf_file.split('/').pop()}
                         </p>
                         <a
-                          href={process.env.NEXT_PUBLIC_API_BASE_URL + '/' + originalSermon.pdf_file}
+                          href={getFileUrl(originalSermon.pdf_file)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-green-600 hover:underline"
@@ -629,7 +634,7 @@ export default function EditSermonPage() {
                           {originalSermon.video_file.split('/').pop()}
                         </p>
                         <a
-                          href={originalSermon.video_file}
+                          href={getFileUrl(originalSermon.video_file)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-green-600 hover:underline"

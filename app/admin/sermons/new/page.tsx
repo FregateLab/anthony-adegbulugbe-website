@@ -205,10 +205,15 @@ export default function NewSermonPage() {
 
       // Handle PDF upload if file is selected
       if (formData.pdfFile) {
-        await sermonsApi.uploadPdf(createdSermon.id, formData.pdfFile)
+        const uploadResult = await sermonsApi.uploadPdf(createdSermon.id, formData.pdfFile)
+        if (uploadResult?.text_extracted) {
+          alert(`Sermon created successfully!\n\nPDF text extracted: ${uploadResult.word_count?.toLocaleString()} words (~${uploadResult.estimated_reading_minutes} min read)`)
+        } else {
+          alert("Sermon created successfully!\n\nNote: PDF text could not be extracted automatically.")
+        }
+      } else {
+        alert("Sermon created successfully!")
       }
-
-      alert("Sermon created successfully!")
       // router.push("/admin")
       window.location.reload()
     } catch (error: any) {

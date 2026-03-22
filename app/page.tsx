@@ -9,6 +9,7 @@ import { SermonsSection } from "@/components/sermons-section"
 import { ContactSection } from "@/components/contact-section"
 import { Footer } from "@/components/footer"
 import { BooksSection } from "@/components/books-section"
+import { DailyDevotional } from "@/components/daily-devotional"
 
 export default function HomePage() {
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function HomePage() {
       <div className="container mx-auto px-4 mb-16">
         <AboutSection />
         <PastorProfileSection />
+        <DailyDevotional />
         <BooksSection />
         <SermonsSection />
         {/* <ArchiveSection /> */}

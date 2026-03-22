@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { sermonsApi, Sermon } from "@/lib/api"
+import { sermonsApi, Sermon, getFileUrl } from "@/lib/api"
 import { Header } from "@/components/header"
 import { Navigation } from "@/components/navigation"
 import { AdminHeader } from "@/components/admin-header"
@@ -307,7 +307,7 @@ export default function ViewSermonPage() {
                           {sermon.audio_file.split('/').pop()}
                         </p>
                         <a
-                          href={process.env.NEXT_PUBLIC_API_BASE_URL + '/' + sermon.audio_file}
+                          href={getFileUrl(sermon.audio_file)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-green-600 hover:underline"
@@ -328,7 +328,7 @@ export default function ViewSermonPage() {
                           {sermon.pdf_file.split('/').pop()}
                         </p>
                         <a
-                          href={process.env.NEXT_PUBLIC_API_BASE_URL + '/' + sermon.pdf_file}
+                          href={getFileUrl(sermon.pdf_file)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-green-600 hover:underline"
@@ -349,7 +349,7 @@ export default function ViewSermonPage() {
                           {sermon.video_file.split('/').pop()}
                         </p>
                         <a
-                          href={process.env.NEXT_PUBLIC_API_BASE_URL + '/' + sermon.video_file}
+                          href={getFileUrl(sermon.video_file)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-green-600 hover:underline"

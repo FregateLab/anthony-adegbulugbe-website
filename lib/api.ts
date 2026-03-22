@@ -1,12 +1,20 @@
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api'
+const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL || 'http://localhost:8000'
+
+// Helper to construct file URLs from relative paths stored in DB
+export function getFileUrl(path: string | null | undefined): string {
+  if (!path) return ''
+  if (path.startsWith('http')) return path
+  return `${STORAGE_URL}/${path}`
+}
 
 // API Response Types
 export interface ApiResponse<T> {
   success: boolean
   message: string
   data: T
-  code?: number
+  status?: number
   errors?: Record<string, string[]>
 }
 
@@ -23,6 +31,7 @@ export interface PaginatedResponse<T> {
 // Admin Types
 export interface Admin {
   id: number
+  admin_id?: string
   username: string
   email: string
   first_name: string
@@ -36,12 +45,12 @@ export interface Admin {
 export interface LoginResponse {
   token: string
   admin: Admin
-  expires_in: number
 }
 
 // Book Types
 export interface Book {
   id: number
+  book_id?: string
   title: string
   subtitle: string | null
   description: string
@@ -72,7 +81,7 @@ export interface Sermon {
   duration: string | null
   summary: string
   scripture_reference: string | null
-  key_points: string[]
+  key_points: string[] | null
   featured: boolean
   has_audio: boolean
   has_video: boolean
@@ -91,14 +100,17 @@ export interface Sermon {
 // Theme Types
 export interface Theme {
   id: number
+  theme_id?: string
   name: string
   description: string
   color_class: string
+  image?: string | null
   status: 'active' | 'inactive'
   slug: string
   created_at: string
   updated_at: string
   sermon_count?: number
+  sermons_count?: number
   book_count?: number
 }
 
@@ -131,7 +143,7 @@ export class ApiError extends Error {
   }
 }
 
-// HTTP Client
+// HTTP Client with authentication
 class HttpClient {
   private baseUrl: string
 
@@ -148,6 +160,7 @@ class HttpClient {
     const token = this.getAuthToken()
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
     }
 
     if (token) {
@@ -161,7 +174,7 @@ class HttpClient {
     const data = await response.json()
 
     if (!data.success) {
-      throw new ApiError(data.message, data.code || response.status, data.errors)
+      throw new ApiError(data.message || 'Request failed', data.status || response.status, data.errors)
     }
 
     return data.data
@@ -203,7 +216,9 @@ class HttpClient {
 
   async upload<T>(endpoint: string, formData: FormData): Promise<T> {
     const token = this.getAuthToken()
-    const headers: HeadersInit = {}
+    const headers: HeadersInit = {
+      'Accept': 'application/json',
+    }
 
     if (token) {
       headers.Authorization = `Bearer ${token}`
@@ -225,17 +240,17 @@ export const authApi = {
   login: (credentials: { username: string; password: string }) =>
     client.post<LoginResponse>('auth/login', credentials),
 
-  logout: () => client.post<{ message: string }>('auth/logout'),
+  logout: () => client.post<null>('auth/logout'),
 
-  verify: () => client.get<{ valid: boolean; admin: Admin }>('auth/verify'),
+  verify: () => client.get<{ valid: boolean }>('auth/verify'),
 
   getCurrentUser: () => client.get<Admin>('auth/user'),
 
   changePassword: (data: {
     current_password: string
     new_password: string
-    confirm_password: string
-  }) => client.post<{ message: string }>('auth/change-password', data),
+    confirm_password?: string
+  }) => client.post<null>('auth/change-password', data),
 }
 
 // Dashboard API
@@ -247,20 +262,18 @@ export const dashboardApi = {
   getOverview: () => client.get<{
     stats: DashboardStats
     recentActivity: Activity[]
-    featured: { books: Book[]; sermons: Sermon[] }
-    popular: { books: Book[]; sermons: Sermon[] }
   }>('dashboard/overview'),
 }
 
 // Books API
 export const booksApi = {
-    getAll: (params?: { page?: number; limit?: number; status?: string }) => {
+  getAll: (params?: { page?: number; limit?: number; status?: string }) => {
     const query = new URLSearchParams()
     if (params?.page) query.append('page', params.page.toString())
     if (params?.limit) query.append('limit', params.limit.toString())
     if (params?.status) query.append('status', params.status)
 
-    return client.get<PaginatedResponse<{books: Book[]}>>(`books?${query.toString()}`)
+    return client.get<{ books: Book[]; pagination: PaginatedResponse<Book>['pagination'] }>(`books?${query.toString()}`)
   },
 
   getById: (id: number) => client.get<Book>(`books/${id}`),
@@ -269,7 +282,7 @@ export const booksApi = {
 
   update: (id: number, data: Partial<Book>) => client.post<Book>(`books/${id}`, data),
 
-  delete: (id: number) => client.delete<{ message: string }>(`books/${id}`),
+  delete: (id: number) => client.delete<null>(`books/${id}`),
 
   toggleFeatured: (id: number) => client.post<Book>(`books/${id}/toggle-featured`),
 
@@ -300,7 +313,7 @@ export const sermonsApi = {
     if (params?.status) query.append('status', params.status)
     if (params?.theme_id) query.append('theme_id', params.theme_id.toString())
 
-    return client.get<PaginatedResponse<{sermons: Sermon[]}>>(`sermons?${query.toString()}`)
+    return client.get<{ sermons: Sermon[]; pagination: PaginatedResponse<Sermon>['pagination'] }>(`sermons?${query.toString()}`)
   },
 
   getById: (id: number) => client.get<Sermon>(`sermons/${id}`),
@@ -309,7 +322,7 @@ export const sermonsApi = {
 
   update: (id: number, data: Partial<Sermon>) => client.post<Sermon>(`sermons/${id}`, data),
 
-  delete: (id: number) => client.delete<{ message: string }>(`sermons/${id}`),
+  delete: (id: number) => client.delete<null>(`sermons/${id}`),
 
   toggleFeatured: (id: number) => client.post<Sermon>(`sermons/${id}/toggle-featured`),
 
@@ -326,7 +339,7 @@ export const sermonsApi = {
   uploadPdf: (id: number, file: File) => {
     const formData = new FormData()
     formData.append('pdf_file', file)
-    return client.upload<Sermon>(`sermons/${id}/upload-pdf`, formData)
+    return client.upload<{ sermon: Sermon; text_extracted: boolean; word_count: number | null; estimated_reading_minutes: number | null }>(`sermons/${id}/upload-pdf`, formData)
   },
 }
 
@@ -338,7 +351,7 @@ export const themesApi = {
     if (params?.limit) query.append('limit', params.limit.toString())
     if (params?.status) query.append('status', params.status)
 
-    return client.get<PaginatedResponse<{themes: Theme[]}>>(`themes?${query.toString()}`)
+    return client.get<{ themes: Theme[]; pagination: PaginatedResponse<Theme>['pagination'] }>(`themes?${query.toString()}`)
   },
 
   getById: (id: number) => client.get<Theme>(`themes/${id}`),
@@ -347,9 +360,34 @@ export const themesApi = {
 
   update: (id: number, data: Partial<Theme>) => client.post<Theme>(`themes/${id}`, data),
 
-  delete: (id: number) => client.delete<{ message: string }>(`themes/${id}`),
+  delete: (id: number) => client.delete<null>(`themes/${id}`),
 
   getActive: () => client.get<Theme[]>('themes/active'),
+
+  uploadImage: (id: number, file: File) => {
+    const formData = new FormData()
+    formData.append('image', file)
+    return client.upload<Theme>(`themes/${id}/upload-image`, formData)
+  },
+}
+
+// Comments API (Admin)
+export const commentsApi = {
+  getAll: (params?: { page?: number; limit?: number; status?: string; entity_type?: string }) => {
+    const query = new URLSearchParams()
+    if (params?.page) query.append('page', params.page.toString())
+    if (params?.limit) query.append('limit', params.limit.toString())
+    if (params?.status) query.append('status', params.status)
+    if (params?.entity_type) query.append('entity_type', params.entity_type)
+
+    return client.get<{ comments: Comment[]; pagination: PaginatedResponse<Comment>['pagination'] }>(`comments?${query.toString()}`)
+  },
+
+  approve: (id: number) => client.post<Comment>(`comments/${id}/approve`),
+
+  reject: (id: number) => client.post<Comment>(`comments/${id}/reject`),
+
+  delete: (id: number) => client.delete<null>(`comments/${id}`),
 }
 
 // Public API Types (for frontend public pages)
@@ -373,6 +411,7 @@ export interface PublicBook {
   formats?: string[]
   excerpt?: string
   pdf_url?: string
+  slug?: string
 }
 
 export interface PublicSermon {
@@ -391,10 +430,13 @@ export interface PublicSermon {
   video_url?: string
   pdf_url?: string
   featured: boolean
+  slug?: string
+  views?: number
   theme?: {
     id: number
     name: string
     color: string
+    image?: string | null
   }
 }
 
@@ -403,6 +445,9 @@ export interface PublicTheme {
   name: string
   color: string
   description: string
+  slug?: string
+  image?: string | null
+  sermon_count?: number
   book?: {
     id: number
     title: string
@@ -433,6 +478,16 @@ export interface RecentSermon {
   description: string
   theme: string
   themeColor: string
+  theme_image?: string | null
+  scripture?: string
+  key_points?: string[]
+  has_audio?: boolean
+  has_video?: boolean
+  has_text?: boolean
+  pdf_url?: string
+  featured?: boolean
+  slug?: string
+  summary?: string
 }
 
 // Comment Types
@@ -456,6 +511,41 @@ export interface CreateCommentData {
   comment: string
 }
 
+// Contact Form Types
+export interface ContactFormData {
+  first_name: string
+  last_name: string
+  email: string
+  phone?: string
+  subject: string
+  message: string
+}
+
+// Daily Devotional Types
+export interface DailyDevotional {
+  text: string
+  scripture: string
+  sermon_id: number
+  sermon_title: string
+  theme: string
+  date: string
+}
+
+// Search Results Types
+export interface SearchResult {
+  id: number
+  title: string
+  summary?: string
+  description?: string
+  date?: string
+  type: 'sermon' | 'book'
+}
+
+export interface SearchResults {
+  sermons: SearchResult[]
+  books: SearchResult[]
+}
+
 // HTTP Client for public endpoints (no auth required)
 class PublicHttpClient {
   private baseURL: string
@@ -466,10 +556,11 @@ class PublicHttpClient {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseURL}/${endpoint}`
-    
+
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         ...options.headers,
       },
       ...options,
@@ -485,11 +576,11 @@ class PublicHttpClient {
     }
 
     const data = await response.json()
-    
+
     if (!data.success && data.success !== undefined) {
-      throw new ApiError(data.message || 'API Error', data.code || 500, data)
+      throw new ApiError(data.message || 'API Error', data.status || 500, data)
     }
-    
+
     return data.data || data
   }
 
@@ -514,11 +605,14 @@ export const publicApi = {
     getFeatured: () => publicClient.get<PublicBook[]>('public/books/featured'),
     getById: (id: number) => publicClient.get<PublicBook>(`public/books/${id}`),
   },
-  
+
   sermons: {
-    getRecent: (limit?: number) => {
+    getRecent: async (limit?: number) => {
       const query = limit ? `?limit=${limit}` : '?limit=100'
-      return publicClient.get<RecentSermon[]>(`public/sermons${query}`)
+      const data = await publicClient.get<{ sermons: RecentSermon[]; total: number } | RecentSermon[]>(`public/sermons${query}`)
+      // Handle both new {sermons, total} and legacy flat array responses
+      if (Array.isArray(data)) return data
+      return data.sermons
     },
     getById: (id: number) => publicClient.get<PublicSermon>(`public/sermons/${id}`),
   },
@@ -532,5 +626,25 @@ export const publicApi = {
       publicClient.get<Comment[]>(`public/comments?entity_type=${entityType}&entity_id=${entityId}`),
     create: (data: CreateCommentData) =>
       publicClient.post<Comment>('public/comments', data),
+  },
+
+  contact: {
+    submit: (data: ContactFormData) =>
+      publicClient.post<{ id: number }>('public/contact', data),
+  },
+
+  subscribe: {
+    submit: (email: string) =>
+      publicClient.post<{ id: number }>('public/subscribe', { email }),
+  },
+
+  devotional: {
+    getToday: () =>
+      publicClient.get<DailyDevotional>('public/devotional'),
+  },
+
+  search: {
+    query: (q: string) =>
+      publicClient.get<SearchResults>(`public/search?q=${encodeURIComponent(q)}`),
   },
 }
