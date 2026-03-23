@@ -25,8 +25,9 @@ import {
 import { ScriptureLink } from "@/components/scripture-link"
 import { SermonNotes } from "@/components/sermon-notes"
 import { ShareCard } from "@/components/share-card"
+import { SermonMarkdown } from "@/components/sermon-markdown"
 import Link from "next/link"
-import { publicApi, PublicSermon, RecentSermon, Comment, getFileUrl } from "@/lib/api"
+import { publicApi, PublicSermon, RecentSermon, Comment, SermonText, getFileUrl } from "@/lib/api"
 import { cachedApi } from "@/lib/cached-api"
 
 interface SermonNavigation {
@@ -45,6 +46,7 @@ export default function SermonViewPage({ params }: { params: Promise<{ id: strin
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [sermon, setSermon] = useState<PublicSermon | null>(null)
+  const [sermonText, setSermonText] = useState<SermonText | null>(null)
   const [loading, setLoading] = useState(true)
   const [navigation, setNavigation] = useState<SermonNavigation>({
     previous: null,
@@ -59,13 +61,15 @@ export default function SermonViewPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     const fetchSermonData = async () => {
       try {
-        // Fetch current sermon and all sermons in parallel
-        const [sermonData, allSermons] = await Promise.all([
+        // Fetch current sermon, all sermons, and sermon text in parallel
+        const [sermonData, allSermons, textData] = await Promise.all([
           cachedApi.sermons.getById(sermonId),
-          cachedApi.sermons.getRecent(100)
+          cachedApi.sermons.getRecent(100),
+          publicApi.sermons.getText(sermonId)
         ])
 
         setSermon(sermonData)
+        setSermonText(textData)
 
         // Helper to parse date strings (handles formats like "DECEMBER 25, 2017")
         const parseSermonDate = (dateStr: string) => {
@@ -406,8 +410,36 @@ export default function SermonViewPage({ params }: { params: Promise<{ id: strin
           </div>
         )}
 
-        {/* PDF Viewer */}
-        {sermon.pdf_url && (
+        {/* Sermon Content */}
+        {sermonText?.text ? (
+          <div className="border-2 border-black bg-white mb-6 sm:mb-8">
+            <div className="border-b-2 border-black p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
+                  <h3 className="text-lg sm:text-xl font-bold">SERMON TEXT</h3>
+                  {sermonText.estimated_reading_minutes > 0 && (
+                    <span className="text-xs sm:text-sm text-gray-500 font-normal">
+                      ({sermonText.estimated_reading_minutes} min read)
+                    </span>
+                  )}
+                </div>
+                {sermon.pdf_url && (
+                  <Button
+                    onClick={handleDownload}
+                    className="bg-red-600 hover:bg-red-700 text-white text-sm"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download PDF
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div className="p-4 sm:p-6 lg:p-10 max-w-4xl mx-auto">
+              <SermonMarkdown content={sermonText.text} />
+            </div>
+          </div>
+        ) : sermon.pdf_url ? (
           <div className="border-2 border-black bg-white mb-6 sm:mb-8">
             <div className="border-b-2 border-black p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -432,10 +464,7 @@ export default function SermonViewPage({ params }: { params: Promise<{ id: strin
               />
             </div>
           </div>
-        )}
-
-        {/* No PDF Available */}
-        {!sermon.pdf_url && (
+        ) : (
           <div className="border-2 border-black bg-white mb-6 sm:mb-8 p-8 text-center">
             <FileText className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg sm:text-xl font-bold mb-2">No Document Available</h3>
@@ -531,12 +560,6 @@ export default function SermonViewPage({ params }: { params: Promise<{ id: strin
               {navigation.themeSermons.map((relatedSermon) => (
                 <Link key={relatedSermon.id} href={`/sermons/${relatedSermon.id}`}>
                   <Card className="border-2 border-black bg-white hover:bg-gray-50 transition-colors h-full overflow-hidden">
-                    {relatedSermon.theme_image && (
-                      <div className="relative h-28">
-                        <img src={getFileUrl(relatedSermon.theme_image)} alt={relatedSermon.theme} className="w-full h-full object-cover object-top" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      </div>
-                    )}
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                         <Calendar className="w-3 h-3" />

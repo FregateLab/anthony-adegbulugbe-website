@@ -8,7 +8,7 @@ export function PastorProfileSection() {
           <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-4 md:mb-6 border-b-2 border-black pb-2">PASTORAL JOURNEY</h3>
           <div className="space-y-4 md:space-y-6 text-xs sm:text-sm leading-relaxed">
             <p>
-              <strong>Pastor Anthony Olusegun Adegbulugbe</strong>, born April 2nd, 1955, in Ondo State, began his
+              <strong>Pastor Anthony Olusegun Adegbulugbe</strong>, born April 2nd, 1955, in Ibadan Nigeria, began his
               Christian journey at CAC Oke-Ibukun, Ibadan, where he served as a choir member before being ordained as an
               Elder and then a Pastor in Christ Apostolic Church, Nigeria and Overseas.
             </p>

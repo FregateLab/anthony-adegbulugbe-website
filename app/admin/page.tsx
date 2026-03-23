@@ -12,7 +12,8 @@ import { AdminHeader } from "@/components/admin-header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Save } from "lucide-react"
+import { Save, Cog } from "lucide-react"
+import { BatchExtractPanel } from "@/components/batch-extract-panel"
 import {
   BookOpen,
   FileText,
@@ -46,6 +47,7 @@ export default function AdminPage() {
   const { isAuthenticated, isLoading, requireAuth } = useAuth()
   const [activeTab, setActiveTab] = useState("dashboard")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showBatchExtract, setShowBatchExtract] = useState(false)
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [dataLoading, setDataLoading] = useState(true)
   const [showThemeModal, setShowThemeModal] = useState(false)
@@ -456,13 +458,24 @@ export default function AdminPage() {
     <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-xl md:text-2xl font-bold">Manage Sermons</h2>
-        <Link href="/admin/sermons/new">
-          <Button className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto">
-            <Plus className="w-4 h-4 mr-2" />
-            Add New Sermon
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowBatchExtract(true)}
+            variant="outline"
+            className="border-2 border-black hover:bg-gray-100 w-full sm:w-auto"
+          >
+            <Cog className="w-4 h-4 mr-2" />
+            Run PDF Extraction
           </Button>
-        </Link>
+          <Link href="/admin/sermons/new">
+            <Button className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto">
+              <Plus className="w-4 h-4 mr-2" />
+              Add New Sermon
+            </Button>
+          </Link>
+        </div>
       </div>
+      <BatchExtractPanel open={showBatchExtract} onOpenChange={setShowBatchExtract} />
 
       <div className="grid gap-4">
         {dashboardData.sermons.map((sermon) => (

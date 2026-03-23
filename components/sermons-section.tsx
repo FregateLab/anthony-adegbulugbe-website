@@ -21,23 +21,14 @@ export function SermonsSection() {
         setLoading(true)
         const [themesData, sermonsData] = await Promise.all([
           cachedApi.themes.getAll(),
-          cachedApi.sermons.getRecent()
+          cachedApi.sermons.getRecent(3)
         ])
         setSermonThemes(themesData)
-        // Pick 1 sermon from each of the last 3 distinct themes (most recent first)
+        // Show the 3 most recent sermons
         const sortedDesc = [...sermonsData].sort((a, b) =>
           new Date(b.date).getTime() - new Date(a.date).getTime()
         )
-        const mixed: typeof sermonsData = []
-        const seenThemes = new Set<string>()
-        for (const sermon of sortedDesc) {
-          if (!seenThemes.has(sermon.theme)) {
-            seenThemes.add(sermon.theme)
-            mixed.push(sermon)
-            if (mixed.length >= 3) break
-          }
-        }
-        setRecentSermons(mixed)
+        setRecentSermons(sortedDesc.slice(0, 3))
         setError(null)
       } catch (err) {
         console.error('Failed to fetch sermons data:', err)
@@ -121,21 +112,10 @@ export function SermonsSection() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {recentSermons.slice(0, 3).map((sermon) => (
             <div key={sermon.id} className="border-2 border-black bg-white hover:bg-gray-50 transition-colors overflow-hidden">
-              {sermon.theme_image && (
-                <div className="relative h-40">
-                  <img src={getFileUrl(sermon.theme_image)} alt={sermon.theme} className="w-full h-full object-cover object-top" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute bottom-3 left-4 right-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${sermon.themeColor}`}>{sermon.theme}</span>
-                  </div>
-                </div>
-              )}
               <div className="p-6">
-                {!sermon.theme_image && (
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${sermon.themeColor}`}>{sermon.theme}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${sermon.themeColor}`}>{sermon.theme}</span>
+                </div>
                 <h3 className="font-bold text-base md:text-lg mb-2">{sermon.title}</h3>
                 <div className="text-xs md:text-sm text-gray-600 mb-4">
                   <div>{sermon.date}</div>
@@ -158,21 +138,10 @@ export function SermonsSection() {
         <div className="space-y-4">
           {recentSermons.slice(0, 3).map((sermon) => (
             <div key={sermon.id} className="border-2 border-black bg-white hover:bg-gray-50 transition-colors overflow-hidden">
-              {sermon.theme_image && (
-                <div className="relative h-36">
-                  <img src={getFileUrl(sermon.theme_image)} alt={sermon.theme} className="w-full h-full object-cover object-top" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute bottom-3 left-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${sermon.themeColor}`}>{sermon.theme}</span>
-                  </div>
-                </div>
-              )}
               <div className="p-4">
-                {!sermon.theme_image && (
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${sermon.themeColor}`}>{sermon.theme}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${sermon.themeColor}`}>{sermon.theme}</span>
+                </div>
                 <h3 className="font-bold text-base mb-2">{sermon.title}</h3>
                 <div className="text-xs text-gray-600 mb-3">
                   <div>{sermon.date}</div>

@@ -341,6 +341,12 @@ export const sermonsApi = {
     formData.append('pdf_file', file)
     return client.upload<{ sermon: Sermon; text_extracted: boolean; word_count: number | null; estimated_reading_minutes: number | null }>(`sermons/${id}/upload-pdf`, formData)
   },
+
+  startBatchExtract: (options?: { force?: boolean }) =>
+    client.post<{ total: number; completed: number; failed: number; results: BatchSermonStatus[] }>('sermons/batch-extract', options),
+
+  getBatchExtractProgress: () =>
+    client.get<{ total: number; completed: number; failed: number; current_sermon: string | null; running: boolean; results: BatchSermonStatus[] }>('sermons/batch-extract-progress'),
 }
 
 // Themes API
@@ -414,6 +420,21 @@ export interface PublicBook {
   slug?: string
 }
 
+export interface SermonText {
+  sermon_id: number
+  text: string
+  word_count: number
+  estimated_reading_minutes: number
+}
+
+export interface BatchSermonStatus {
+  id: number
+  title: string
+  status: 'done' | 'pending' | 'processing' | 'failed'
+  word_count?: number
+  error?: string
+}
+
 export interface PublicSermon {
   id: number
   title: string
@@ -426,6 +447,8 @@ export interface PublicSermon {
   has_audio: boolean
   has_video: boolean
   has_text: boolean
+  has_extracted_text?: boolean
+  estimated_reading_minutes?: number
   audio_url?: string
   video_url?: string
   pdf_url?: string
@@ -615,6 +638,13 @@ export const publicApi = {
       return data.sermons
     },
     getById: (id: number) => publicClient.get<PublicSermon>(`public/sermons/${id}`),
+    getText: async (id: number): Promise<SermonText | null> => {
+      try {
+        return await publicClient.get<SermonText>(`public/sermons/${id}/text`)
+      } catch {
+        return null
+      }
+    },
   },
 
   themes: {

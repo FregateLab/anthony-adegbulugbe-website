@@ -32,6 +32,7 @@ export default function SermonsPage() {
   const [subscribeEmail, setSubscribeEmail] = useState("")
   const [subscribing, setSubscribing] = useState(false)
   const loaderRef = useRef<HTMLDivElement>(null)
+  const sermonsListRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,6 +96,13 @@ export default function SermonsPage() {
     setDisplayedSermons(filtered.slice(0, SERMONS_PER_PAGE))
     setHasMore(filtered.length > SERMONS_PER_PAGE)
   }, [selectedTheme, searchQuery, allSermons, themes])
+
+  // Scroll to sermons list when a theme filter is selected
+  useEffect(() => {
+    if (selectedTheme !== "all" && sermonsListRef.current) {
+      sermonsListRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [selectedTheme])
 
   // Load more sermons function
   const loadMoreSermons = useCallback(() => {
@@ -289,8 +297,8 @@ export default function SermonsPage() {
           </div>
         )}
 
-        {/* Featured Themes Section */}
-        <section className="mb-12">
+        {/* Featured Themes Section - hidden when filtering by theme */}
+        {selectedTheme === "all" && <section className="mb-12">
           <h2 className="text-2xl md:text-3xl font-bold mb-8 border-b-2 border-black pb-4">SERMON THEMES</h2>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -391,10 +399,10 @@ export default function SermonsPage() {
               </Card>
             ))}
           </div>
-        </section>
+        </section>}
 
         {/* Sermons List */}
-        <section>
+        <section ref={sermonsListRef}>
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl md:text-3xl font-bold border-b-2 border-black pb-4">
               {selectedTheme === "all" ? "ALL SERMONS" : `${themes.find(t => String(t.id) === String(selectedTheme))?.name.toUpperCase()} SERMONS`}
