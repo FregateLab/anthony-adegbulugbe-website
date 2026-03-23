@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { BookOpen, Download, Eye, Star, Calendar } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { type PublicBook } from "@/lib/api"
+import { type PublicBook, getFileUrl } from "@/lib/api"
 import { cachedApi } from "@/lib/cached-api"
 
 export function BooksSection() {
@@ -111,7 +111,7 @@ export function BooksSection() {
                 <div className="text-center mb-4">
                   <div className="w-full h-48 bg-black border-2 border-black overflow-hidden mb-3 relative">
                     <Image
-                      src={book.cover_image || "/placeholder.svg"}
+                      src={getFileUrl(book.cover_image) || "/placeholder.svg"}
                       alt={book.title}
                       width={200}
                       height={300}
@@ -184,7 +184,7 @@ export function BooksSection() {
                   <div className="flex-shrink-0">
                     <div className="w-20 h-28 bg-black border-2 border-black overflow-hidden relative">
                       <Image
-                        src={book.cover_image || "/placeholder.svg"}
+                        src={getFileUrl(book.cover_image) || "/placeholder.svg"}
                         alt={book.title}
                         width={80}
                         height={112}
