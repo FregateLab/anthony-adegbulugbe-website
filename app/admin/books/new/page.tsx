@@ -28,6 +28,7 @@ export default function NewBookPage() {
     category: "Spiritual Growth",
     year: new Date().getFullYear().toString(),
     featured: false,
+    status: "published" as "draft" | "published",
     keyThemes: "",
     tableOfContents: "",
     excerpt: "",
@@ -95,7 +96,7 @@ export default function NewBookPage() {
         key_themes: formData.keyThemes || null,
         table_of_contents: formData.tableOfContents || null,
         excerpt: formData.excerpt || null,
-        status: 'draft' as const
+        status: formData.status
       }
 
       const createdBook = await booksApi.create(bookData)
@@ -230,6 +231,19 @@ export default function NewBookPage() {
                     <option value="Pastoral Ministry">Pastoral Ministry</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="mt-4 md:mt-6">
+                <label className="block text-xs md:text-sm font-bold mb-2">STATUS</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="w-full border-2 border-black p-2 md:p-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-red-600"
+                >
+                  <option value="published">Published</option>
+                  <option value="draft">Draft</option>
+                </select>
               </div>
 
               <div className="mt-4 md:mt-6">
