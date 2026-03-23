@@ -621,12 +621,29 @@ class PublicHttpClient {
 
 const publicClient = new PublicHttpClient(API_BASE_URL)
 
+function safeArray(val: unknown): string[] {
+  if (Array.isArray(val)) return val
+  if (typeof val === 'string') {
+    try { const parsed = JSON.parse(val); return Array.isArray(parsed) ? parsed : [] } catch { return [] }
+  }
+  return []
+}
+
+function normalizeBook(book: PublicBook): PublicBook {
+  return {
+    ...book,
+    key_themes: safeArray(book.key_themes),
+    table_of_contents: safeArray(book.table_of_contents),
+    formats: safeArray(book.formats),
+  }
+}
+
 // Public API functions (no authentication required)
 export const publicApi = {
   books: {
-    getAll: () => publicClient.get<PublicBook[]>('public/books'),
-    getFeatured: () => publicClient.get<PublicBook[]>('public/books/featured'),
-    getById: (id: number) => publicClient.get<PublicBook>(`public/books/${id}`),
+    getAll: async () => (await publicClient.get<PublicBook[]>('public/books')).map(normalizeBook),
+    getFeatured: async () => (await publicClient.get<PublicBook[]>('public/books/featured')).map(normalizeBook),
+    getById: async (id: number) => normalizeBook(await publicClient.get<PublicBook>(`public/books/${id}`)),
   },
 
   sermons: {
