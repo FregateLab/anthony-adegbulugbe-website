@@ -4,10 +4,10 @@ import { cacheGet, cacheSet } from './cache'
 // TTL values in milliseconds
 const TTL = {
   THEMES: 24 * 60 * 60 * 1000,       // 24 hours
-  BOOKS: 24 * 60 * 60 * 1000,        // 24 hours
-  BOOK_DETAIL: 24 * 60 * 60 * 1000,  // 24 hours
-  SERMONS: 1 * 60 * 60 * 1000,       // 1 hour
-  SERMON_DETAIL: 6 * 60 * 60 * 1000, // 6 hours
+  BOOKS: 10 * 60 * 1000,             // 10 minutes
+  BOOK_DETAIL: 10 * 60 * 1000,      // 10 minutes
+  SERMONS: 5 * 60 * 1000,             // 5 minutes
+  SERMON_DETAIL: 10 * 60 * 1000,     // 10 minutes
   DEVOTIONAL: 12 * 60 * 60 * 1000,   // 12 hours
   COMMENTS: 5 * 60 * 1000,           // 5 minutes
 } as const
@@ -20,17 +20,20 @@ async function cachedFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: num
 
   const cached = await cacheGet<T>(key)
 
-  if (cached) {
-    if (!cached.expired) return cached.data
-    // Expired — return stale data, refresh in background
-    fetcher().then(fresh => cacheSet(key, fresh, ttlMs)).catch(() => {})
+  if (cached && !cached.expired) {
     return cached.data
   }
 
-  // No cache — fetch fresh
-  const data = await fetcher()
-  await cacheSet(key, data, ttlMs)
-  return data
+  // Expired or no cache — fetch fresh
+  try {
+    const data = await fetcher()
+    await cacheSet(key, data, ttlMs)
+    return data
+  } catch {
+    // If fetch fails and we have stale data, return it
+    if (cached) return cached.data
+    throw new Error('Failed to fetch data')
+  }
 }
 
 export const cachedApi = {
