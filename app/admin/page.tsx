@@ -33,6 +33,7 @@ import {
   Check,
   XCircle,
   Upload,
+  Loader2,
 } from "lucide-react"
 
 // Data fetched from API
@@ -50,6 +51,10 @@ export default function AdminPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showBatchExtract, setShowBatchExtract] = useState(false)
   const [cacheEnabled, setCacheState] = useState(true)
+  const [sermonPage, setSermonPage] = useState(1)
+  const [sermonThemeFilter, setSermonThemeFilter] = useState<number | undefined>(undefined)
+  const [sermonPagination, setSermonPagination] = useState<{ total: number; total_pages: number; current_page: number } | null>(null)
+  const [loadingMoreSermons, setLoadingMoreSermons] = useState(false)
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [dataLoading, setDataLoading] = useState(true)
   const [showThemeModal, setShowThemeModal] = useState(false)
@@ -93,6 +98,7 @@ export default function AdminPage() {
         themesApi.getAll({ limit: 20 })
       ])
 
+      setSermonPagination(sermonsResponse?.pagination)
       setDashboardData({
         stats,
         recentActivity: activity,
@@ -292,6 +298,37 @@ export default function AdminPage() {
     { id: "themes", label: "Themes", icon: Settings },
     { id: "comments", label: "Comments", icon: MessageCircle },
   ]
+
+  const fetchSermons = async (page: number, themeId?: number, append = false) => {
+    setLoadingMoreSermons(true)
+    try {
+      const response = await sermonsApi.getAll({ page, limit: 20, theme_id: themeId })
+      setSermonPagination(response?.pagination)
+      setDashboardData(prev => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          sermons: append ? [...prev.sermons, ...response.sermons] : response.sermons,
+        }
+      })
+    } catch (err) {
+      console.error('Failed to fetch sermons:', err)
+    } finally {
+      setLoadingMoreSermons(false)
+    }
+  }
+
+  const handleSermonThemeFilter = (themeId: number | undefined) => {
+    setSermonThemeFilter(themeId)
+    setSermonPage(1)
+    fetchSermons(1, themeId)
+  }
+
+  const handleLoadMoreSermons = () => {
+    const nextPage = sermonPage + 1
+    setSermonPage(nextPage)
+    fetchSermons(nextPage, sermonThemeFilter, true)
+  }
 
   const handleCacheToggle = () => {
     const newValue = !cacheEnabled
@@ -516,6 +553,36 @@ export default function AdminPage() {
       </div>
       <BatchExtractPanel open={showBatchExtract} onOpenChange={setShowBatchExtract} />
 
+      {/* Theme Filter */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm font-bold text-gray-600">Filter by theme:</span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleSermonThemeFilter(undefined)}
+          className={`text-xs ${!sermonThemeFilter ? 'bg-red-600 text-white border-red-600' : 'border-2 border-black hover:bg-gray-100 bg-transparent'}`}
+        >
+          All
+        </Button>
+        {dashboardData.themes.map((theme) => (
+          <Button
+            key={theme.id}
+            variant="outline"
+            size="sm"
+            onClick={() => handleSermonThemeFilter(theme.id)}
+            className={`text-xs ${sermonThemeFilter === theme.id ? 'bg-red-600 text-white border-red-600' : 'border-2 border-black hover:bg-gray-100 bg-transparent'}`}
+          >
+            {theme.name}
+          </Button>
+        ))}
+      </div>
+
+      {sermonPagination && (
+        <p className="text-xs text-gray-500">
+          Showing {dashboardData.sermons.length} of {sermonPagination.total} sermons
+        </p>
+      )}
+
       <div className="grid gap-4">
         {dashboardData.sermons.map((sermon) => (
           <Card key={sermon.id} className="border-2 border-black bg-white">
@@ -591,6 +658,27 @@ export default function AdminPage() {
           </Card>
         ))}
       </div>
+
+      {/* Load More Button */}
+      {sermonPagination && sermonPagination.current_page < sermonPagination.total_pages && (
+        <div className="text-center pt-4">
+          <Button
+            onClick={handleLoadMoreSermons}
+            disabled={loadingMoreSermons}
+            variant="outline"
+            className="border-2 border-black hover:bg-gray-100 bg-transparent px-8"
+          >
+            {loadingMoreSermons ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              `Load More (${sermonPagination.total - dashboardData.sermons.length} remaining)`
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   )
 
