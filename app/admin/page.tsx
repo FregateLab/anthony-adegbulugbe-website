@@ -12,8 +12,9 @@ import { AdminHeader } from "@/components/admin-header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Save, Cog } from "lucide-react"
+import { Save, Cog, ToggleLeft, ToggleRight } from "lucide-react"
 import { BatchExtractPanel } from "@/components/batch-extract-panel"
+import { getCacheEnabled, setCacheEnabled } from "@/lib/cached-api"
 import {
   BookOpen,
   FileText,
@@ -48,6 +49,7 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showBatchExtract, setShowBatchExtract] = useState(false)
+  const [cacheEnabled, setCacheState] = useState(true)
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [dataLoading, setDataLoading] = useState(true)
   const [showThemeModal, setShowThemeModal] = useState(false)
@@ -68,6 +70,10 @@ export default function AdminPage() {
   useEffect(() => {
     requireAuth()
   }, [isAuthenticated, isLoading])
+
+  useEffect(() => {
+    setCacheState(getCacheEnabled())
+  }, [])
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -287,8 +293,41 @@ export default function AdminPage() {
     { id: "comments", label: "Comments", icon: MessageCircle },
   ]
 
+  const handleCacheToggle = () => {
+    const newValue = !cacheEnabled
+    setCacheState(newValue)
+    setCacheEnabled(newValue)
+  }
+
   const renderDashboard = () => (
     <div className="space-y-6 md:space-y-8">
+      {/* Quick Settings */}
+      <Card className="border-2 border-black bg-white">
+        <CardContent className="p-3 md:p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Cog className="w-4 h-4 text-gray-500" />
+              <div>
+                <p className="text-sm font-bold">Frontend Cache</p>
+                <p className="text-xs text-gray-500">
+                  {cacheEnabled ? "Sermons & books are cached for faster loading" : "Cache disabled — always fetches fresh data"}
+                </p>
+              </div>
+            </div>
+            <button onClick={handleCacheToggle} className="flex items-center gap-2 cursor-pointer">
+              {cacheEnabled ? (
+                <ToggleRight className="w-8 h-8 text-green-600" />
+              ) : (
+                <ToggleLeft className="w-8 h-8 text-gray-400" />
+              )}
+              <span className={`text-xs font-bold ${cacheEnabled ? 'text-green-600' : 'text-gray-400'}`}>
+                {cacheEnabled ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         <Card className="border-2 border-black bg-white">

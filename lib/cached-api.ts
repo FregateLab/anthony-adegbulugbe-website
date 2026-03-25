@@ -1,5 +1,5 @@
 import { publicApi, type PublicBook, type PublicSermon, type PublicTheme, type RecentSermon, type Comment, type DailyDevotional } from './api'
-import { cacheGet, cacheSet } from './cache'
+import { cacheGet, cacheSet, cacheClear } from './cache'
 
 // TTL values in milliseconds
 const TTL = {
@@ -12,9 +12,29 @@ const TTL = {
   COMMENTS: 5 * 60 * 1000,           // 5 minutes
 } as const
 
+function isCacheEnabled(): boolean {
+  if (typeof window === 'undefined') return false
+  return localStorage.getItem('cache_enabled') !== 'false'
+}
+
+export function setCacheEnabled(enabled: boolean) {
+  if (typeof window === 'undefined') return
+  localStorage.setItem('cache_enabled', enabled ? 'true' : 'false')
+  if (!enabled) {
+    // Clear existing cache when disabling
+    cacheClear()
+  }
+}
+
+export function getCacheEnabled(): boolean {
+  if (typeof window === 'undefined') return true
+  const val = localStorage.getItem('cache_enabled')
+  return val !== 'false'
+}
+
 async function cachedFetch<T>(key: string, fetcher: () => Promise<T>, ttlMs: number): Promise<T> {
-  // Skip cache on server side (SSR)
-  if (typeof window === 'undefined') {
+  // Skip cache on server side (SSR) or when cache is disabled
+  if (typeof window === 'undefined' || !isCacheEnabled()) {
     return fetcher()
   }
 
