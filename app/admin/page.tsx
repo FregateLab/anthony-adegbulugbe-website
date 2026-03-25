@@ -60,6 +60,8 @@ export default function AdminPage() {
   const [showThemeModal, setShowThemeModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [bookToDelete, setBookToDelete] = useState<{ id: number; title: string } | null>(null)
+  const [showSermonDeleteConfirm, setShowSermonDeleteConfirm] = useState(false)
+  const [sermonToDelete, setSermonToDelete] = useState<{ id: number; title: string } | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
   const [commentsLoading, setCommentsLoading] = useState(false)
   const [commentFilter, setCommentFilter] = useState<string>("pending")
@@ -230,6 +232,29 @@ export default function AdminPage() {
       } catch (error) {
         console.error('Failed to delete book:', error)
         alert('Failed to delete book. Please try again.')
+      }
+    }
+  }
+
+  const handleDeleteSermon = (sermon: { id: number; title: string }) => {
+    setSermonToDelete(sermon)
+    setShowSermonDeleteConfirm(true)
+  }
+
+  const confirmDeleteSermon = async () => {
+    if (sermonToDelete) {
+      try {
+        await sermonsApi.delete(sermonToDelete.id)
+        setDashboardData(prev => prev ? {
+          ...prev,
+          sermons: prev.sermons.filter((s) => s.id !== sermonToDelete.id)
+        } : null)
+        setShowSermonDeleteConfirm(false)
+        setSermonToDelete(null)
+        alert("Sermon deleted successfully!")
+      } catch (error) {
+        console.error('Failed to delete sermon:', error)
+        alert('Failed to delete sermon. Please try again.')
       }
     }
   }
@@ -648,6 +673,7 @@ export default function AdminPage() {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => handleDeleteSermon({ id: sermon.id, title: sermon.title })}
                     className="border-2 border-black hover:bg-red-100 bg-transparent p-2"
                   >
                     <Trash2 className="w-4 h-4 text-red-600" />
@@ -990,6 +1016,57 @@ export default function AdminPage() {
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete Book
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showSermonDeleteConfirm && sermonToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white border-2 border-black max-w-md w-full">
+              <div className="p-4 md:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg md:text-xl font-bold text-red-600">DELETE SERMON</h2>
+                  <Button
+                    onClick={() => {
+                      setShowSermonDeleteConfirm(false)
+                      setSermonToDelete(null)
+                    }}
+                    variant="outline"
+                    className="border-2 border-black hover:bg-gray-100 bg-transparent p-2"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="mb-6">
+                  <p className="text-sm md:text-base mb-3">
+                    Are you sure you want to delete this sermon? This action cannot be undone.
+                  </p>
+                  <div className="bg-gray-50 p-3 rounded border">
+                    <p className="font-bold text-sm">{sermonToDelete.title}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    onClick={() => {
+                      setShowSermonDeleteConfirm(false)
+                      setSermonToDelete(null)
+                    }}
+                    variant="outline"
+                    className="w-full sm:w-auto border-2 border-black hover:bg-gray-100 bg-transparent"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={confirmDeleteSermon}
+                    className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Sermon
                   </Button>
                 </div>
               </div>
