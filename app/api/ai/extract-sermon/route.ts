@@ -35,8 +35,6 @@ function calculateDuration(text: string): string {
   return `${minutesLow}-${minutesHigh} minutes`
 }
 
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/chat/completions'
-
 const EXTRACTION_PROMPT = `You are an expert at extracting structured information from sermon documents.
 Analyze the provided sermon text and extract the following information in JSON format:
 
@@ -91,10 +89,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const apiKey = process.env.DEEPSEEK_API_KEY
+    const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) {
       return NextResponse.json(
-        { success: false, message: 'DeepSeek API key not configured. Add DEEPSEEK_API_KEY to your .env.local file.' },
+        { success: false, message: 'Gemini API key not configured. Add GEMINI_API_KEY to your .env.local file.' },
         { status: 500 }
       )
     }
@@ -127,37 +125,41 @@ export async function POST(request: NextRequest) {
       pdfText = pdfText.substring(0, maxTextLength) + '\n\n[Content truncated...]'
     }
 
-    // Call DeepSeek API
-    const response = await fetch(DEEPSEEK_API_URL, {
+    // Call Gemini API
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`
+    const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
+        contents: [
           {
-            role: 'user',
-            content: EXTRACTION_PROMPT + pdfText,
+            parts: [
+              {
+                text: EXTRACTION_PROMPT + pdfText,
+              },
+            ],
           },
         ],
-        temperature: 0.1,
-        max_tokens: 2000,
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 2000,
+        },
       }),
     })
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      console.error('DeepSeek API error:', response.status, errorData)
+      console.error('Gemini API error:', response.status, errorData)
       return NextResponse.json(
-        { success: false, message: `DeepSeek API error: ${errorData.error?.message || response.statusText}` },
+        { success: false, message: `Gemini API error: ${errorData.error?.message || response.statusText}` },
         { status: response.status }
       )
     }
 
     const data = await response.json()
-    const content = data.choices?.[0]?.message?.content
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text
 
     if (!content) {
       return NextResponse.json(
