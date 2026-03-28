@@ -476,8 +476,6 @@ export interface PublicTheme {
     title: string
     subtitle: string
     author: string
-    rating: number
-    reviews: number
     pages: number
     year: number
     cover: string
@@ -488,7 +486,7 @@ export interface PublicTheme {
     title: string
     date: string
     duration: string
-    description: string
+    summary: string
     theme: string
   }>
 }
