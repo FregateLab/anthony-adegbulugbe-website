@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { BookOpen, Download, Eye, Star, Calendar } from "lucide-react"
+import { BookOpen, Download, Eye, Calendar } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { type PublicBook, getFileUrl } from "@/lib/api"
@@ -15,21 +15,27 @@ export function BooksSection() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let cancelled = false
+
     const fetchBooks = async () => {
       try {
         setLoading(true)
         const booksData = await cachedApi.books.getFeatured()
+        if (cancelled) return
         setBooks(booksData.slice(0, 3)) // Show maximum 3 books for homepage
         setError(null)
-      } catch (err) {
+      } catch (err: any) {
+        if (cancelled) return
+        if (err?.name === 'AbortError' || err?.message?.includes('aborted')) return
         console.error('Failed to fetch books:', err)
         setError('Failed to load books')
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
     fetchBooks()
+    return () => { cancelled = true }
   }, [])
 
   if (loading) {
@@ -81,15 +87,6 @@ export function BooksSection() {
       </section>
     )
   }
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-3 h-3 ${i < Math.floor(rating) ? "text-yellow-500 fill-current" : "text-gray-300"}`}
-      />
-    ))
-  }
-
   return (
     <section id="books" className="mt-16">
       <div className="flex items-center justify-between mb-8 border-b-2 border-black pb-4">
@@ -142,12 +139,6 @@ export function BooksSection() {
                     <BookOpen className="w-3 h-3" />
                     {book.pages} pages
                   </div>
-                  {book.rating && book.rating > 0 && (
-                    <div className="flex items-center gap-1">
-                      {renderStars(book.rating)}
-                      <span className="text-xs">({book.reviews})</span>
-                    </div>
-                  )}
                 </div>
 
                 <p className="text-sm text-gray-700 text-center mb-4">{book.description}</p>
@@ -162,10 +153,14 @@ export function BooksSection() {
                       VIEW
                     </Button>
                   </Link>
-                  <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm">
-                    <Download className="w-3 h-3 mr-1" />
-                    DOWNLOAD
-                  </Button>
+                  {book.pdf_url && (
+                    <a href={getFileUrl(book.pdf_url)} target="_blank" rel="noopener noreferrer" className="flex-1">
+                      <Button className="w-full bg-red-600 hover:bg-red-700 text-white text-sm">
+                        <Download className="w-3 h-3 mr-1" />
+                        DOWNLOAD
+                      </Button>
+                    </a>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -217,12 +212,6 @@ export function BooksSection() {
                         <BookOpen className="w-3 h-3" />
                         {book.pages}p
                       </div>
-                      {book.rating && book.rating > 0 && (
-                        <div className="flex items-center gap-1">
-                          {renderStars(book.rating)}
-                          <span className="text-xs">({book.reviews})</span>
-                        </div>
-                      )}
                     </div>
 
                     <p className="text-xs sm:text-sm text-gray-700 mb-3 line-clamp-2">{book.description}</p>
@@ -237,10 +226,14 @@ export function BooksSection() {
                           VIEW
                         </Button>
                       </Link>
-                      <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm">
-                        <Download className="w-3 h-3 mr-1" />
-                        GET
-                      </Button>
+                      {book.pdf_url && (
+                        <a href={getFileUrl(book.pdf_url)} target="_blank" rel="noopener noreferrer" className="flex-1">
+                          <Button className="w-full bg-red-600 hover:bg-red-700 text-white text-sm">
+                            <Download className="w-3 h-3 mr-1" />
+                            GET
+                          </Button>
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>

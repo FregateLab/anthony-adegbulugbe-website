@@ -12,18 +12,24 @@ export function DailyDevotional() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let cancelled = false
+
     const fetchDevotional = async () => {
       try {
         const data = await cachedApi.devotional.getToday()
+        if (cancelled) return
         setDevotional(data)
-      } catch (error) {
+      } catch (error: any) {
+        if (cancelled) return
+        if (error?.name === 'AbortError' || error?.message?.includes('aborted')) return
         console.error("Failed to fetch devotional:", error)
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
     fetchDevotional()
+    return () => { cancelled = true }
   }, [])
 
   if (loading) {

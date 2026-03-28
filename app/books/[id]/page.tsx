@@ -6,7 +6,7 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Star, Download, Eye, Calendar, BookOpen, Users, Quote, ArrowLeft, Loader2 } from "lucide-react"
+import { Download, Eye, Calendar, BookOpen, Quote, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { type PublicBook, getFileUrl } from "@/lib/api"
 import { cachedApi } from "@/lib/cached-api"
@@ -81,8 +81,6 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
   const author = "Pastor Anthony Adegbulugbe"
   const otherBooks = allBooks.filter((b) => b.id !== book.id)
-  const rating = book.rating || 4.8
-  const reviewCount = book.reviews || 0
   const coverUrl = book.cover_image ? getFileUrl(book.cover_image) : "/placeholder.svg"
   const pdfUrl = book.pdf_url ? getFileUrl(book.pdf_url) : null
   const keyThemes = book.key_themes || []
@@ -155,28 +153,10 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
               )}
               <p className="text-base sm:text-lg text-gray-700 mb-4 sm:mb-6">by {author}</p>
 
-              {/* Rating and Stats */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-4 sm:mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                          i < Math.floor(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="font-bold text-sm sm:text-base">{rating}</span>
-                  {reviewCount > 0 && (
-                    <span className="text-gray-600 text-sm sm:text-base">({reviewCount} reviews)</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
-                  {book.pages > 0 && <span>{book.pages} pages</span>}
-                  <span>{book.year}</span>
-                </div>
+              {/* Stats */}
+              <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6">
+                {book.pages > 0 && <span>{book.pages} pages</span>}
+                <span>{book.year}</span>
               </div>
 
               {/* Description */}
@@ -215,7 +195,6 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
               {[
                 { id: "overview", label: "OVERVIEW" },
                 { id: "contents", label: "CONTENTS" },
-                { id: "reviews", label: "REVIEWS" },
                 { id: "quotes", label: "QUOTES" },
               ].map((tab) => (
                 <button
@@ -257,7 +236,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                   </div>
                 )}
 
-                <div className="grid sm:grid-cols-3 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t-2 border-gray-200">
+                <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6 border-t-2 border-gray-200">
                   <div className="text-center">
                     <div className="flex items-center justify-center mb-2">
                       <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
@@ -271,13 +250,6 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                     </div>
                     <div className="text-xl sm:text-2xl font-bold">{book.pages || "—"}</div>
                     <div className="text-xs sm:text-sm text-gray-600">Pages</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex items-center justify-center mb-2">
-                      <Users className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
-                    </div>
-                    <div className="text-xl sm:text-2xl font-bold">{reviewCount || "—"}</div>
-                    <div className="text-xs sm:text-sm text-gray-600">Reviews</div>
                   </div>
                 </div>
               </div>
@@ -303,19 +275,6 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                 ) : (
                   <p className="text-sm sm:text-base text-gray-500">Table of contents not available.</p>
                 )}
-              </div>
-            )}
-
-            {/* Reviews Tab */}
-            {activeTab === "reviews" && (
-              <div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
-                  <h3 className="text-xl sm:text-2xl font-bold">READER REVIEWS</h3>
-                </div>
-                <div className="text-center py-6 sm:py-8 text-gray-600">
-                  <Users className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-gray-400" />
-                  <p className="text-sm sm:text-base">No reviews yet. Be the first to share your thoughts!</p>
-                </div>
               </div>
             )}
 
@@ -364,19 +323,6 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                     {otherBook.subtitle && (
                       <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3">{otherBook.subtitle}</p>
                     )}
-                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3 h-3 sm:w-4 sm:h-4 ${
-                              i < Math.floor(otherBook.rating || 4.8) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-xs sm:text-sm font-bold">{otherBook.rating || 4.8}</span>
-                    </div>
                     <Link href={`/books/${otherBook.id}`}>
                       <Button
                         variant="outline"

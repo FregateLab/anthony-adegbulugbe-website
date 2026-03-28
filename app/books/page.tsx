@@ -6,7 +6,7 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { BookOpen, Download, Eye, Star, Calendar, User, Heart } from "lucide-react"
+import { BookOpen, Download, Eye, Calendar, User, Heart } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { type PublicBook, getFileUrl } from "@/lib/api"
@@ -46,15 +46,6 @@ export default function BooksPage() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
-
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-3 h-3 sm:w-4 sm:h-4 ${i < Math.floor(rating) ? "text-yellow-500 fill-current" : "text-gray-300"}`}
-      />
-    ))
-  }
 
   if (loading) {
     return (
@@ -176,10 +167,14 @@ export default function BooksPage() {
                         VIEW DETAILS
                       </Button>
                     </Link>
-                    <Button className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white text-sm">
-                      <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                      DOWNLOAD
-                    </Button>
+                    {featuredBook.pdf_url && (
+                      <a href={getFileUrl(featuredBook.pdf_url)} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                        <Button className="w-full bg-red-600 hover:bg-red-700 text-white text-sm">
+                          <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                          DOWNLOAD
+                        </Button>
+                      </a>
+                    )}
                   </div>
                 </div>
 
@@ -198,12 +193,6 @@ export default function BooksPage() {
                       <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
                       {featuredBook.pages} pages
                     </div>
-                    {featuredBook.rating && featuredBook.rating > 0 && (
-                      <div className="flex items-center gap-1">
-                        {renderStars(featuredBook.rating)}
-                        <span className="ml-1">({featuredBook.reviews} reviews)</span>
-                      </div>
-                    )}
                   </div>
 
                   <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-4 sm:mb-6">{featuredBook.description}</p>
@@ -410,10 +399,14 @@ export default function BooksPage() {
                           VIEW
                         </Button>
                       </Link>
-                      <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs">
-                        <Download className="w-3 h-3 mr-1" />
-                        DOWNLOAD
-                      </Button>
+                      {book.pdf_url && (
+                        <a href={getFileUrl(book.pdf_url)} target="_blank" rel="noopener noreferrer" className="flex-1">
+                          <Button className="w-full bg-red-600 hover:bg-red-700 text-white text-xs">
+                            <Download className="w-3 h-3 mr-1" />
+                            DOWNLOAD
+                          </Button>
+                        </a>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

@@ -2,43 +2,40 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { BookOpen, Calendar, Clock, Star } from "lucide-react"
+import { BookOpen, Calendar, Clock } from "lucide-react"
 import Link from "next/link"
-import { getFileUrl, type PublicTheme, type RecentSermon } from "@/lib/api"
+import { getFileUrl, type PublicTheme } from "@/lib/api"
 import { cachedApi } from "@/lib/cached-api"
 
 export function SermonsSection() {
   const [sermonThemes, setSermonThemes] = useState<PublicTheme[]>([])
-  const [recentSermons, setRecentSermons] = useState<RecentSermon[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showCollectionModal, setShowCollectionModal] = useState(false)
   const [selectedThemeForModal, setSelectedThemeForModal] = useState<PublicTheme | null>(null)
 
   useEffect(() => {
+    let cancelled = false
+
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [themesData, sermonsData] = await Promise.all([
-          cachedApi.themes.getAll(),
-          cachedApi.sermons.getRecent(3)
-        ])
+        const themesData = await cachedApi.themes.getAll()
+        if (cancelled) return
         setSermonThemes(themesData)
-        // Show the 3 most recent sermons
-        const sortedDesc = [...sermonsData].sort((a, b) =>
-          new Date(b.date).getTime() - new Date(a.date).getTime()
-        )
-        setRecentSermons(sortedDesc.slice(0, 3))
         setError(null)
-      } catch (err) {
-        console.error('Failed to fetch sermons data:', err)
+      } catch (err: any) {
+        if (cancelled) return
+        if (err?.name === 'AbortError' || err?.message?.includes('aborted')) return
+        console.error('Failed to fetch themes:', err)
         setError('Failed to load sermons')
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
     fetchData()
+    return () => { cancelled = true }
   }, [])
 
   const handleExploreTheme = (theme: PublicTheme) => {
@@ -50,7 +47,7 @@ export function SermonsSection() {
     return (
       <section id="sermons" className="mt-16">
         <div className="flex items-center justify-between mb-8 border-b-2 border-black pb-4">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">RECENT SERMONS</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">SERMON THEMES</h2>
           <Link href="/sermons" className="flex items-center gap-2 text-sm sm:text-base md:text-lg font-bold hover:text-red-600 transition-colors">
             ALL SERMONS
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +67,7 @@ export function SermonsSection() {
     return (
       <section id="sermons" className="mt-16">
         <div className="flex items-center justify-between mb-8 border-b-2 border-black pb-4">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">RECENT SERMONS</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">SERMON THEMES</h2>
           <Link href="/sermons" className="flex items-center gap-2 text-sm sm:text-base md:text-lg font-bold hover:text-red-600 transition-colors">
             ALL SERMONS
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,9 +77,9 @@ export function SermonsSection() {
         </div>
         <div className="text-center py-12">
           <p className="text-red-600 mb-4">{error}</p>
-          <Button 
-            onClick={() => window.location.reload()} 
-            variant="outline" 
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
             className="border-2 border-black hover:bg-gray-100"
           >
             Try Again
@@ -95,7 +92,7 @@ export function SermonsSection() {
   return (
     <section id="sermons" className="mt-16">
       <div className="flex items-center justify-between mb-8 border-b-2 border-black pb-4">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">RECENT SERMONS</h2>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">SERMON THEMES</h2>
         <Link
           href="/sermons"
           className="flex items-center gap-2 text-sm sm:text-base md:text-lg font-bold hover:text-red-600 transition-colors"
@@ -107,104 +104,27 @@ export function SermonsSection() {
         </Link>
       </div>
 
-      {/* Desktop */}
-      <div className="hidden md:block">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {recentSermons.slice(0, 3).map((sermon) => (
-            <div key={sermon.id} className="border-2 border-black bg-white hover:bg-gray-50 transition-colors overflow-hidden">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${sermon.themeColor}`}>{sermon.theme}</span>
-                </div>
-                <h3 className="font-bold text-base md:text-lg mb-2">{sermon.title}</h3>
-                <div className="text-xs md:text-sm text-gray-600 mb-4">
-                  <div>{sermon.date}</div>
-                  <div>{sermon.duration}</div>
-                </div>
-                <p className="text-xs md:text-sm mb-4 text-gray-700">{sermon.description}</p>
-                <Link href={`/sermons/${sermon.id}`}>
-                  <Button variant="outline" className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent">
-                    READ
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Mobile */}
-      <div className="block md:hidden">
-        <div className="space-y-4">
-          {recentSermons.slice(0, 3).map((sermon) => (
-            <div key={sermon.id} className="border-2 border-black bg-white hover:bg-gray-50 transition-colors overflow-hidden">
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${sermon.themeColor}`}>{sermon.theme}</span>
-                </div>
-                <h3 className="font-bold text-base mb-2">{sermon.title}</h3>
-                <div className="text-xs text-gray-600 mb-3">
-                  <div>{sermon.date}</div>
-                  <div>{sermon.duration}</div>
-                </div>
-                <p className="text-xs text-gray-700 mb-4">{sermon.description}</p>
-                <Link href={`/sermons/${sermon.id}`}>
-                  <Button variant="outline" className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent">
-                    READ
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Themes Overview */}
-      <div className="mt-12 pt-8 border-t border-gray-300">
-        <h3 className="text-xl sm:text-2xl font-bold mb-6">EXPLORE BY THEME</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sermonThemes.map((theme) => (
-            <div key={theme.name} className={`border-2 border-black bg-white hover:bg-gray-50 transition-colors overflow-hidden ${theme.image ? '' : 'p-6'}`}>
-              {theme.image ? (
-                <>
-                  <div className="relative h-40">
-                    <img
-                      src={getFileUrl(theme.image)}
-                      alt={theme.name}
-                      className="w-full h-full object-cover object-top"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                    <div className="absolute bottom-3 left-4 right-4">
-                      <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-semibold ${theme.color}`}>
-                        {theme.sermons.length} Sermon{theme.sermons.length !== 1 ? "s" : ""}{theme.book && " • 1 Book"}
-                      </span>
-                      <h4 className="font-bold text-lg sm:text-xl text-white mt-2">{theme.name}</h4>
-                    </div>
-                  </div>
-                  <div className="p-6 pt-3">
-                    <div className="space-y-2 mb-4">
-                      {theme.recentSermons.slice(0, 2).map((sermon) => (
-                        <div key={sermon.id} className="text-xs sm:text-sm text-gray-600">
-                          • {sermon.title}
-                        </div>
-                      ))}
-                      {theme.sermons.length > 2 && (
-                        <div className="text-xs sm:text-sm text-gray-500">+ {theme.sermons.length - 2} more sermons</div>
-                      )}
-                    </div>
-                    <Button onClick={() => handleExploreTheme(theme)} variant="outline" className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent">
-                      EXPLORE THEME
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between mb-4">
+      {/* Themes */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {sermonThemes.map((theme) => (
+          <div key={theme.name} className={`border-2 border-black bg-white hover:bg-gray-50 transition-colors overflow-hidden ${theme.image ? '' : 'p-6'}`}>
+            {theme.image ? (
+              <>
+                <div className="relative h-40">
+                  <img
+                    src={getFileUrl(theme.image)}
+                    alt={theme.name}
+                    className="w-full h-full object-cover object-top"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                  <div className="absolute bottom-3 left-4 right-4">
                     <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-semibold ${theme.color}`}>
                       {theme.sermons.length} Sermon{theme.sermons.length !== 1 ? "s" : ""}{theme.book && " • 1 Book"}
                     </span>
+                    <h4 className="font-bold text-lg sm:text-xl text-white mt-2">{theme.name}</h4>
                   </div>
-                  <h4 className="font-bold text-lg sm:text-xl mb-3">{theme.name}</h4>
+                </div>
+                <div className="p-6 pt-3">
                   <div className="space-y-2 mb-4">
                     {theme.recentSermons.slice(0, 2).map((sermon) => (
                       <div key={sermon.id} className="text-xs sm:text-sm text-gray-600">
@@ -218,11 +138,33 @@ export function SermonsSection() {
                   <Button onClick={() => handleExploreTheme(theme)} variant="outline" className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent">
                     EXPLORE THEME
                   </Button>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-semibold ${theme.color}`}>
+                    {theme.sermons.length} Sermon{theme.sermons.length !== 1 ? "s" : ""}{theme.book && " • 1 Book"}
+                  </span>
+                </div>
+                <h4 className="font-bold text-lg sm:text-xl mb-3">{theme.name}</h4>
+                <div className="space-y-2 mb-4">
+                  {theme.recentSermons.slice(0, 2).map((sermon) => (
+                    <div key={sermon.id} className="text-xs sm:text-sm text-gray-600">
+                      • {sermon.title}
+                    </div>
+                  ))}
+                  {theme.sermons.length > 2 && (
+                    <div className="text-xs sm:text-sm text-gray-500">+ {theme.sermons.length - 2} more sermons</div>
+                  )}
+                </div>
+                <Button onClick={() => handleExploreTheme(theme)} variant="outline" className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent">
+                  EXPLORE THEME
+                </Button>
+              </>
+            )}
+          </div>
+        ))}
       </div>
 
       {/* Collection Modal */}
@@ -265,11 +207,6 @@ export function SermonsSection() {
                       <p className="text-gray-600 mb-3">{selectedThemeForModal.book.subtitle}</p>
 
                       <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-bold">{selectedThemeForModal.book.rating}</span>
-                          <span>({selectedThemeForModal.book.reviews} reviews)</span>
-                        </div>
                         <span>{selectedThemeForModal.book.pages} pages</span>
                         <span>{selectedThemeForModal.book.year}</span>
                       </div>
