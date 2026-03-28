@@ -6,11 +6,11 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Calendar, Clock, Search, Bell, BookOpen, Eye, Mail } from "lucide-react"
+import { Calendar, Clock, Search, Bell, BookOpen, Eye, Mail, Loader2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import Link from "next/link"
 import Image from "next/image"
-import { publicApi, getFileUrl, type PublicTheme } from "@/lib/api"
+import { publicApi, getFileUrl, type PublicTheme, type ThemeSermon } from "@/lib/api"
 import { cachedApi } from "@/lib/cached-api"
 
 export default function SermonsPage() {
@@ -20,6 +20,8 @@ export default function SermonsPage() {
   const [error, setError] = useState<string | null>(null)
   const [showNotification, setShowNotification] = useState(false)
   const [modalTheme, setModalTheme] = useState<PublicTheme | null>(null)
+  const [modalSermons, setModalSermons] = useState<ThemeSermon[]>([])
+  const [modalLoading, setModalLoading] = useState(false)
   const [showSubscribeModal, setShowSubscribeModal] = useState(false)
   const [subscribeEmail, setSubscribeEmail] = useState("")
   const [subscribing, setSubscribing] = useState(false)
@@ -48,16 +50,32 @@ export default function SermonsPage() {
     return () => { cancelled = true }
   }, [])
 
+  const sermonCount = (theme: PublicTheme) => theme.sermon_count ?? theme.recentSermons.length
+
   const filteredThemes = searchQuery.trim()
     ? themes.filter(theme => {
         const query = searchQuery.toLowerCase()
         return (
           theme.name.toLowerCase().includes(query) ||
           theme.description.toLowerCase().includes(query) ||
-          theme.sermons.some(s => s.title.toLowerCase().includes(query))
+          theme.recentSermons.some(s => s.title.toLowerCase().includes(query))
         )
       })
     : themes
+
+  const handleOpenThemeModal = async (theme: PublicTheme) => {
+    setModalTheme(theme)
+    setModalSermons([])
+    setModalLoading(true)
+    try {
+      const sermons = await cachedApi.themes.getSermons(theme.id)
+      setModalSermons(sermons)
+    } catch (err) {
+      console.error('Failed to fetch theme sermons:', err)
+    } finally {
+      setModalLoading(false)
+    }
+  }
 
   const handleNotifyMe = () => {
     setShowSubscribeModal(true)
@@ -148,7 +166,6 @@ export default function SermonsPage() {
         {/* Search and Actions */}
         <div className="mb-12">
           <div className="flex flex-col sm:flex-row gap-4 items-center">
-            {/* Search Bar */}
             <div className="flex-1 w-full sm:max-w-md">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -162,7 +179,6 @@ export default function SermonsPage() {
               </div>
             </div>
 
-            {/* Notification Button */}
             <Button
               onClick={handleNotifyMe}
               className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2"
@@ -224,7 +240,7 @@ export default function SermonsPage() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                       <div className="absolute bottom-3 left-4 right-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${theme.color}`}>
-                          {theme.sermons.length} Sermon{theme.sermons.length !== 1 ? "s" : ""}
+                          {sermonCount(theme)} Sermon{sermonCount(theme) !== 1 ? "s" : ""}
                           {theme.book && " • 1 Book"}
                         </span>
                         <h3 className="text-lg font-bold text-white mt-2">{theme.name}</h3>
@@ -236,7 +252,7 @@ export default function SermonsPage() {
                       <>
                         <div className="flex items-center justify-between mb-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${theme.color}`}>
-                            {theme.sermons.length} Sermon{theme.sermons.length !== 1 ? "s" : ""}
+                            {sermonCount(theme)} Sermon{sermonCount(theme) !== 1 ? "s" : ""}
                             {theme.book && " • 1 Book"}
                           </span>
                         </div>
@@ -284,13 +300,13 @@ export default function SermonsPage() {
                           • {sermon.title}
                         </div>
                       ))}
-                      {theme.sermons.length > 2 && (
-                        <div className="text-xs text-gray-500">+ {theme.sermons.length - 2} more sermons</div>
+                      {sermonCount(theme) > 2 && (
+                        <div className="text-xs text-gray-500">+ {sermonCount(theme) - 2} more sermons</div>
                       )}
                     </div>
 
                     <Button
-                      onClick={() => setModalTheme(theme)}
+                      onClick={() => handleOpenThemeModal(theme)}
                       variant="outline"
                       className="w-full border-2 border-black hover:bg-red-600 hover:text-white"
                     >
@@ -347,41 +363,50 @@ export default function SermonsPage() {
           </DialogHeader>
 
           <div className="space-y-4 mt-4">
-            {modalTheme && [...modalTheme.sermons]
-              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-              .map((sermon, index) => (
-                <Card key={sermon.id} className="border-2 border-black bg-white">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="bg-gray-200 text-gray-800 px-2 py-0.5 text-xs font-medium">
-                        Part {index + 1}
-                      </span>
-                      <div className="flex items-center gap-3 text-xs text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {sermon.date}
-                        </div>
-                        {sermon.duration && (
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {sermon.duration}
+            {modalLoading ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-red-600 mb-3" />
+                <p className="text-sm text-gray-600">Loading sermons...</p>
+              </div>
+            ) : (
+              <>
+                {[...modalSermons]
+                  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                  .map((sermon, index) => (
+                    <Card key={sermon.id} className="border-2 border-black bg-white">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="bg-gray-200 text-gray-800 px-2 py-0.5 text-xs font-medium">
+                            Part {index + 1}
+                          </span>
+                          <div className="flex items-center gap-3 text-xs text-gray-600">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {sermon.date}
+                            </div>
+                            {sermon.duration && (
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {sermon.duration}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-bold mb-2">{sermon.title}</h3>
-                    <p className="text-sm text-gray-700 mb-3 line-clamp-2">{sermon.summary}</p>
-                    <Link href={`/sermons/${sermon.id}`}>
-                      <Button className="w-full bg-red-600 hover:bg-red-700 text-white" size="sm">
-                        READ SERMON
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
+                        </div>
+                        <h3 className="text-lg font-bold mb-2">{sermon.title}</h3>
+                        <p className="text-sm text-gray-700 mb-3 line-clamp-2">{sermon.summary}</p>
+                        <Link href={`/sermons/${sermon.id}`}>
+                          <Button className="w-full bg-red-600 hover:bg-red-700 text-white" size="sm">
+                            READ SERMON
+                          </Button>
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  ))}
 
-            {modalTheme && modalTheme.sermons.length === 0 && (
-              <p className="text-center text-gray-600 py-4">No sermons available for this theme yet.</p>
+                {modalSermons.length === 0 && (
+                  <p className="text-center text-gray-600 py-4">No sermons available for this theme yet.</p>
+                )}
+              </>
             )}
           </div>
         </DialogContent>

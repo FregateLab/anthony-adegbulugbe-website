@@ -480,15 +480,26 @@ export interface PublicTheme {
     year: number
     cover: string
   }
-  sermons: PublicSermon[]
   recentSermons: Array<{
     id: number
     title: string
     date: string
     duration: string
-    summary: string
-    theme: string
   }>
+}
+
+export interface ThemeSermon {
+  id: number
+  title: string
+  date: string
+  duration: string
+  summary: string
+  scripture: string
+  has_audio: boolean
+  has_video: boolean
+  has_text: boolean
+  featured: boolean
+  slug: string
 }
 
 export interface RecentSermon {
@@ -664,6 +675,10 @@ export const publicApi = {
 
   themes: {
     getAll: () => publicClient.get<PublicTheme[]>('public/themes'),
+    getSermons: async (themeId: number) => {
+      const data = await publicClient.get<{ theme: { id: number; name: string; color: string; description: string }; sermons: ThemeSermon[] }>(`public/themes/${themeId}/sermons`)
+      return data.sermons
+    },
   },
 
   comments: {

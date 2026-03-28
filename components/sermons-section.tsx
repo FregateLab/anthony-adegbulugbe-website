@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { BookOpen, Calendar, Clock } from "lucide-react"
+import { BookOpen, Calendar, Clock, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { getFileUrl, type PublicTheme } from "@/lib/api"
+import { getFileUrl, type PublicTheme, type ThemeSermon } from "@/lib/api"
 import { cachedApi } from "@/lib/cached-api"
 
 export function SermonsSection() {
@@ -13,6 +13,8 @@ export function SermonsSection() {
   const [error, setError] = useState<string | null>(null)
   const [showCollectionModal, setShowCollectionModal] = useState(false)
   const [selectedThemeForModal, setSelectedThemeForModal] = useState<PublicTheme | null>(null)
+  const [modalSermons, setModalSermons] = useState<ThemeSermon[]>([])
+  const [modalLoading, setModalLoading] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -38,10 +40,22 @@ export function SermonsSection() {
     return () => { cancelled = true }
   }, [])
 
-  const handleExploreTheme = (theme: PublicTheme) => {
+  const handleExploreTheme = async (theme: PublicTheme) => {
     setSelectedThemeForModal(theme)
     setShowCollectionModal(true)
+    setModalSermons([])
+    setModalLoading(true)
+    try {
+      const sermons = await cachedApi.themes.getSermons(theme.id)
+      setModalSermons(sermons)
+    } catch (err) {
+      console.error('Failed to fetch theme sermons:', err)
+    } finally {
+      setModalLoading(false)
+    }
   }
+
+  const sermonCount = (theme: PublicTheme) => theme.sermon_count ?? theme.recentSermons.length
 
   if (loading) {
     return (
@@ -119,7 +133,7 @@ export function SermonsSection() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                   <div className="absolute bottom-3 left-4 right-4">
                     <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-semibold ${theme.color}`}>
-                      {theme.sermons.length} Sermon{theme.sermons.length !== 1 ? "s" : ""}{theme.book && " • 1 Book"}
+                      {sermonCount(theme)} Sermon{sermonCount(theme) !== 1 ? "s" : ""}{theme.book && " • 1 Book"}
                     </span>
                     <h4 className="font-bold text-lg sm:text-xl text-white mt-2">{theme.name}</h4>
                   </div>
@@ -131,8 +145,8 @@ export function SermonsSection() {
                         • {sermon.title}
                       </div>
                     ))}
-                    {theme.sermons.length > 2 && (
-                      <div className="text-xs sm:text-sm text-gray-500">+ {theme.sermons.length - 2} more sermons</div>
+                    {sermonCount(theme) > 2 && (
+                      <div className="text-xs sm:text-sm text-gray-500">+ {sermonCount(theme) - 2} more sermons</div>
                     )}
                   </div>
                   <Button onClick={() => handleExploreTheme(theme)} variant="outline" className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent">
@@ -144,7 +158,7 @@ export function SermonsSection() {
               <>
                 <div className="flex items-center justify-between mb-4">
                   <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-semibold ${theme.color}`}>
-                    {theme.sermons.length} Sermon{theme.sermons.length !== 1 ? "s" : ""}{theme.book && " • 1 Book"}
+                    {sermonCount(theme)} Sermon{sermonCount(theme) !== 1 ? "s" : ""}{theme.book && " • 1 Book"}
                   </span>
                 </div>
                 <h4 className="font-bold text-lg sm:text-xl mb-3">{theme.name}</h4>
@@ -154,8 +168,8 @@ export function SermonsSection() {
                       • {sermon.title}
                     </div>
                   ))}
-                  {theme.sermons.length > 2 && (
-                    <div className="text-xs sm:text-sm text-gray-500">+ {theme.sermons.length - 2} more sermons</div>
+                  {sermonCount(theme) > 2 && (
+                    <div className="text-xs sm:text-sm text-gray-500">+ {sermonCount(theme) - 2} more sermons</div>
                   )}
                 </div>
                 <Button onClick={() => handleExploreTheme(theme)} variant="outline" className="w-full border-2 border-black hover:bg-red-600 hover:text-white bg-transparent">
@@ -229,59 +243,68 @@ export function SermonsSection() {
               {/* Sermons in Collection */}
               <div>
                 <h4 className="text-lg font-bold mb-4 border-b-2 border-black pb-2">
-                  SERMONS IN THIS COLLECTION ({selectedThemeForModal.sermons.length})
+                  SERMONS IN THIS COLLECTION ({modalLoading ? '...' : modalSermons.length})
                 </h4>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  {[...selectedThemeForModal.sermons]
-                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                    .map((sermon, index) => (
-                    <div
-                      key={sermon.id}
-                      className="border-2 border-gray-300 bg-white hover:bg-gray-50 transition-colors p-4 cursor-pointer"
-                      onClick={() => {
-                        setShowCollectionModal(false)
-                        window.location.href = `/sermons/${sermon.id}`
-                      }}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <span className="bg-gray-200 text-gray-800 px-2 py-1 text-xs font-medium">
-                          Part {index + 1}
-                        </span>
-                        <div className="flex gap-1">
-                          {sermon.has_audio && (
-                            <div className="w-2 h-2 bg-green-600 rounded-full" title="Audio Available"></div>
-                          )}
-                          {sermon.has_video && (
-                            <div className="w-2 h-2 bg-blue-600 rounded-full" title="Video Available"></div>
-                          )}
-                          {sermon.has_text && (
-                            <div className="w-2 h-2 bg-gray-600 rounded-full" title="Text Available"></div>
-                          )}
+                {modalLoading ? (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-red-600 mb-3" />
+                    <p className="text-sm text-gray-600">Loading sermons...</p>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {[...modalSermons]
+                      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                      .map((sermon, index) => (
+                      <div
+                        key={sermon.id}
+                        className="border-2 border-gray-300 bg-white hover:bg-gray-50 transition-colors p-4 cursor-pointer"
+                        onClick={() => {
+                          setShowCollectionModal(false)
+                          window.location.href = `/sermons/${sermon.id}`
+                        }}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <span className="bg-gray-200 text-gray-800 px-2 py-1 text-xs font-medium">
+                            Part {index + 1}
+                          </span>
+                          <div className="flex gap-1">
+                            {sermon.has_audio && (
+                              <div className="w-2 h-2 bg-green-600 rounded-full" title="Audio Available"></div>
+                            )}
+                            {sermon.has_video && (
+                              <div className="w-2 h-2 bg-blue-600 rounded-full" title="Video Available"></div>
+                            )}
+                            {sermon.has_text && (
+                              <div className="w-2 h-2 bg-gray-600 rounded-full" title="Text Available"></div>
+                            )}
+                          </div>
                         </div>
-                      </div>
 
-                      <h5 className="font-bold text-sm mb-2 leading-tight">{sermon.title}</h5>
+                        <h5 className="font-bold text-sm mb-2 leading-tight">{sermon.title}</h5>
 
-                      <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {sermon.date}
+                        <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {sermon.date}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {sermon.duration}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {sermon.duration}
-                        </div>
-                      </div>
 
-                      <p className="text-xs text-gray-700 mb-2 line-clamp-2">{sermon.summary}</p>
+                        <p className="text-xs text-gray-700 mb-2 line-clamp-2">{sermon.summary}</p>
 
-                      <div className="text-xs">
-                        <span className="font-bold">Scripture:</span> {sermon.scripture}
+                        {sermon.scripture && (
+                          <div className="text-xs">
+                            <span className="font-bold">Scripture:</span> {sermon.scripture}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

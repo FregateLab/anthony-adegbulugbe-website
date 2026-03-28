@@ -1,4 +1,4 @@
-import { publicApi, type PublicBook, type PublicSermon, type PublicTheme, type RecentSermon, type Comment, type DailyDevotional } from './api'
+import { publicApi, type PublicBook, type PublicSermon, type PublicTheme, type RecentSermon, type ThemeSermon, type Comment, type DailyDevotional } from './api'
 import { cacheGet, cacheSet, cacheClear } from './cache'
 
 // TTL values in milliseconds
@@ -60,6 +60,8 @@ export const cachedApi = {
   themes: {
     getAll: () =>
       cachedFetch<PublicTheme[]>('themes', () => publicApi.themes.getAll(), TTL.THEMES),
+    getSermons: (themeId: number) =>
+      cachedFetch<ThemeSermon[]>(`theme-sermons-${themeId}`, () => publicApi.themes.getSermons(themeId), TTL.SERMONS),
   },
 
   books: {
