@@ -144,10 +144,10 @@ export function ContactSection() {
                   <strong>EMAIL:</strong> anthony.adegbulugbe@gmail.com
                 </div>
                 <div>
-                  <strong>PHONE:</strong> +234-807-777-7856
+                  <strong>PHONE:</strong> +234-803-577-9500
                 </div>
                 <div>
-                  <strong>LOCATION:</strong> Lagos, Nigeria
+                  <strong>LOCATION:</strong> Abuja, Nigeria
                 </div>
                 <div>
                   <strong>OFFICE HOURS:</strong> Mon-Fri, 9:00 AM - 5:00 PM WAT

@@ -35,12 +35,12 @@ export default function HomePage() {
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "Serving CAC congregations nationwide",
-        "addressLocality": "Lagos",
-        "addressRegion": "Lagos",
+        "addressLocality": "Abuja",
+        "addressRegion": "Abuja",
         "postalCode": "12345",
         "addressCountry": "NG"
       },
-      "telephone": "+234-807-777-7856",
+      "telephone": "+2348035779500",
       "url": "https://aoa.ng",
       "image": "https://aoa.ng/images/anthony-portrait.jpg",
       "priceRange": "Free",
