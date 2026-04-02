@@ -286,7 +286,7 @@ export default function SermonViewPage({ params }: { params: Promise<{ id: strin
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight text-white">{sermon.title}</h1>
               <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-white/80 mt-2">
                 <div className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                  Date <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                   {sermon.date}
                 </div>
                 <div className="flex items-center gap-1">
@@ -486,7 +486,7 @@ export default function SermonViewPage({ params }: { params: Promise<{ id: strin
               {sermon.theme.name}
             </span>
             <span>•</span>
-            <span>{sermon.date}</span>
+            <span>Sermon Date: {sermon.date}</span>
           </div>
         )}
 
