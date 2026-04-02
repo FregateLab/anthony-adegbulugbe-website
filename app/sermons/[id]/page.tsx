@@ -411,6 +411,7 @@ export default function SermonViewPage({ params }: { params: Promise<{ id: strin
         )}
 
         {/* Sermon Content */}
+        {/* TODO: Re-enable markdown rendering once ready
         {sermonText?.text ? (
           <div className="border-2 border-black bg-white mb-6 sm:mb-8">
             <div className="border-b-2 border-black p-4 sm:p-6">
@@ -439,7 +440,8 @@ export default function SermonViewPage({ params }: { params: Promise<{ id: strin
               <SermonMarkdown content={sermonText.text} />
             </div>
           </div>
-        ) : sermon.pdf_url ? (
+        ) : */}
+        {sermon.pdf_url ? (
           <div className="border-2 border-black bg-white mb-6 sm:mb-8">
             <div className="border-b-2 border-black p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
