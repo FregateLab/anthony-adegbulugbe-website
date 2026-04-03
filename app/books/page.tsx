@@ -310,7 +310,7 @@ export default function BooksPage() {
         )}
 
         {/* Author Bio */}
-        <section className="border-2 border-black bg-white p-4 sm:p-6 lg:p-8 mb-12 sm:mb-16">
+        <section className="border-2 border-black bg-white p-4 sm:p-6 lg:p-8 mb-12 sm:mb-16 hidden">
           <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
             <User className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
             <h2 className="text-xl sm:text-2xl font-bold">ABOUT THE AUTHOR</h2>
