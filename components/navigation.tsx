@@ -69,14 +69,6 @@ export const Navigation = () => {
               HOME
             </Link>
             <Link
-              href="/about"
-              className={`px-2 md:px-4 py-2 hover:bg-black hover:text-white transition-colors ${
-                pathname === "/about" ? "bg-black text-white" : ""
-              }`}
-            >
-              ABOUT
-            </Link>
-            <Link
               href="/books"
               className={`px-2 md:px-4 py-2 hover:bg-black hover:text-white transition-colors ${
                 pathname.startsWith("/books") ? "bg-black text-white" : ""
@@ -128,15 +120,6 @@ export const Navigation = () => {
                   onClick={closeMenu}
                 >
                   HOME
-                </Link>
-                <Link
-                  href="/about"
-                  className={`px-4 py-3 hover:bg-black hover:text-white transition-colors border-b border-gray-300 ${
-                    pathname === "/about" ? "bg-black text-white" : ""
-                  }`}
-                  onClick={closeMenu}
-                >
-                  ABOUT
                 </Link>
                 <Link
                   href="/books"

@@ -18,7 +18,7 @@ export function PastorProfileSection() {
               Divine Intervention" were launched.
             </p>
             <p>
-              In 2018, he was elevated to District Superintendent and later appointed as Zonal Superintendent. He
+              In 2018, he was elevated to District Superintendent and later appointed as DCC Superintendent. He
               introduced a welfare scheme providing free medical care to pastors and their families and launched
               empowerment programs for women in the church.
             </p>
