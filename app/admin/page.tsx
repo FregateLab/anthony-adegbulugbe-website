@@ -73,6 +73,7 @@ export default function AdminPage() {
   })
   const [themeImageFile, setThemeImageFile] = useState<File | null>(null)
   const [themeImagePreview, setThemeImagePreview] = useState<string | null>(null)
+  const [themeSearch, setThemeSearch] = useState("")
 
   useEffect(() => {
     requireAuth()
@@ -97,7 +98,7 @@ export default function AdminPage() {
         dashboardApi.getActivity(),
         booksApi.getAll({ limit: 20 }),
         sermonsApi.getAll({ limit: 20 }),
-        themesApi.getAll({ limit: 20 })
+        themesApi.getAll({ limit: 1000 })
       ])
 
       setSermonPagination(sermonsResponse?.pagination)
@@ -708,10 +709,20 @@ export default function AdminPage() {
     </div>
   )
 
-  const renderThemes = () => (
+  const renderThemes = () => {
+    const filteredThemes = dashboardData.themes.filter((theme) => {
+      if (!themeSearch) return true
+      const search = themeSearch.toLowerCase()
+      return (
+        theme.name.toLowerCase().includes(search) ||
+        theme.description?.toLowerCase().includes(search)
+      )
+    })
+
+    return (
     <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-xl md:text-2xl font-bold">Manage Themes</h2>
+        <h2 className="text-xl md:text-2xl font-bold">Manage Themes ({dashboardData.themes.length})</h2>
         <Button
           onClick={() => setShowThemeModal(true)}
           className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto"
@@ -721,8 +732,25 @@ export default function AdminPage() {
         </Button>
       </div>
 
+      <div>
+        <input
+          type="text"
+          placeholder="Search themes by name or description..."
+          value={themeSearch}
+          onChange={(e) => setThemeSearch(e.target.value)}
+          className="w-full border-2 border-black p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base"
+        />
+        {themeSearch && (
+          <p className="text-xs text-gray-500 mt-1">{filteredThemes.length} of {dashboardData.themes.length} themes</p>
+        )}
+      </div>
+
       <div className="grid gap-4">
-        {dashboardData.themes.map((theme) => (
+        {filteredThemes.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p className="text-sm">No themes found{themeSearch ? ` matching "${themeSearch}"` : ''}.</p>
+          </div>
+        ) : filteredThemes.map((theme) => (
           <Card key={theme.id} className="border-2 border-black bg-white">
             <CardContent className="p-4 md:p-6">
               <div className="space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
@@ -783,6 +811,7 @@ export default function AdminPage() {
       </div>
     </div>
   )
+  }
 
   const renderComments = () => {
     // Fetch comments when tab is first shown
