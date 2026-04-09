@@ -5,8 +5,7 @@ export function AboutSection() {
         <div>
           <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 md:mb-4 border-b-2 border-black pb-2">MINISTRY</h3>
           <p className="text-xs sm:text-sm leading-relaxed">
-            Ordained as Elder and Pastor in Christ Apostolic Church, Nigeria and Overseas. Currently serving as Zonal
-            Superintendent with over four decades of faithful ministry and pastoral care.
+            Ordained as Elder and Pastor in Christ Apostolic Church, Nigeria and Overseas. Currently serving as DCC Superintendent with over four decades of faithful ministry and pastoral care.
           </p>
         </div>
 
@@ -21,8 +20,9 @@ export function AboutSection() {
         <div>
           <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 md:mb-4 border-b-2 border-black pb-2">LEADERSHIP</h3>
           <p className="text-xs sm:text-sm leading-relaxed">
-            Launched impactful programs like "Operation Declare and Decree" and "Hours of Divine Intervention."
-            Introduced welfare schemes and empowerment programs for church members and pastors.
+            {/* Launched impactful programs like "Operation Declare and Decree" and "Hours of Divine Intervention."
+            Introduced welfare schemes and empowerment programs for church members and pastors. */}
+            Served as Director at OAU's Center for Energy Research and Presidential Adviser on Energy to President Obasanjo. Currently Chancellor of Joseph Ayo Babalola University.
           </p>
         </div>
       </div>
