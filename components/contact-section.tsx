@@ -144,7 +144,7 @@ export function ContactSection() {
                   <strong>EMAIL:</strong> anthony.adegbulugbe@gmail.com
                 </div>
                 <div>
-                  <strong>PHONE:</strong> +234-803-577-9500
+                  <strong>PHONE:</strong> +234-905-837-1747
                 </div>
                 <div>
                   <strong>LOCATION:</strong> Abuja, Nigeria
