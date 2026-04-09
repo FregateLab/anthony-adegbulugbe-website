@@ -311,7 +311,7 @@ export default function AboutPage() {
               <div className="text-xs sm:text-sm">
                 <strong>Email:</strong> anthony.adegbulugbe@gmail.com
                 <br />
-                <strong>Phone:</strong> +234-807-777-7856
+                <strong>Phone:</strong> +234-905-837-1747
               </div>
             </div>
 

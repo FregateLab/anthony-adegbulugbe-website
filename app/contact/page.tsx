@@ -240,7 +240,7 @@ export default function ContactPage() {
                   <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 mt-1 flex-shrink-0" />
                   <div>
                     <h4 className="font-bold mb-1 text-sm sm:text-base">PHONE</h4>
-                    <p className="text-xs sm:text-sm text-gray-700">+234-803-577-9500</p>
+                    <p className="text-xs sm:text-sm text-gray-700">+234-905-837-1747</p>
                     <p className="text-xs text-gray-600">Available for urgent pastoral care</p>
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export default function ContactPage() {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
             <div className="flex items-center gap-2 text-red-800">
               <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="font-bold text-sm sm:text-base">Emergency Line: +234-803-577-9500</span>
+              <span className="font-bold text-sm sm:text-base">Emergency Line: +234-905-837-1747</span>
             </div>
             <div className="flex items-center gap-2 text-red-800">
               <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
