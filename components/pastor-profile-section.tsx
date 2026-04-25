@@ -38,7 +38,7 @@ export function PastorProfileSection() {
               </p>
             </div>
             <div>
-              <h4 className="text-sm sm:text-base md:text-lg font-bold mb-2">Church Leadership</h4>
+              <h4 className="text-sm sm:text-base md:text-lg font-bold mb-2">OAU Leadership</h4>
               <p className="text-xs sm:text-sm text-gray-700">
                 Served as Director at OAU's Center for Energy Research and Presidential Adviser on Energy to President
                 Obasanjo. Currently Chancellor of Joseph Ayo Babalola University.
