@@ -10,6 +10,7 @@ import { ContactSection } from "@/components/contact-section"
 import { Footer } from "@/components/footer"
 import { BooksSection } from "@/components/books-section"
 import { DailyDevotional } from "@/components/daily-devotional"
+import { LatestPodcastSection } from "@/components/latest-podcast-section"
 
 export default function HomePage() {
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function HomePage() {
         <DailyDevotional />
         <BooksSection />
         <SermonsSection />
+        <LatestPodcastSection />
         {/* <ArchiveSection /> */}
         <ContactSection />
       </div>
