@@ -70,11 +70,11 @@ export default function HomePage() {
       <HeroSection />
       <div className="container mx-auto px-4 mb-16">
         <AboutSection />
+        <LatestPodcastSection />
         <PastorProfileSection />
         <DailyDevotional />
         <BooksSection />
         <SermonsSection />
-        <LatestPodcastSection />
         {/* <ArchiveSection /> */}
         <ContactSection />
       </div>
