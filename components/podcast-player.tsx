@@ -48,16 +48,20 @@ function formatTime(seconds: number): string {
 export function PodcastPlayer({ id, src, durationHint = 0 }: PodcastPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const barsRef = useRef<number[]>(buildBars(id))
   const rafRef = useRef<number | null>(null)
   const phaseRef = useRef(0)
   const pendingSeekRef = useRef<number | null>(null)
+  const peaksFetchedRef = useRef(false)
 
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [duration, setDuration] = useState(durationHint)
   const [currentTime, setCurrentTime] = useState(0)
   const [buffered, setBuffered] = useState(0)
+  // Bumped when real peaks arrive so a paused waveform redraws.
+  const [peaksVersion, setPeaksVersion] = useState(0)
 
   const progress = duration > 0 ? currentTime / duration : 0
   const bufferedFrac = duration > 0 ? buffered / duration : 0
@@ -126,7 +130,7 @@ export function PodcastPlayer({ id, src, durationHint = 0 }: PodcastPlayerProps)
       }
     }
     draw()
-  }, [isPlaying, draw])
+  }, [isPlaying, draw, peaksVersion])
 
   // Redraw on container resize so the waveform stays crisp.
   useEffect(() => {
@@ -148,6 +152,60 @@ export function PodcastPlayer({ id, src, durationHint = 0 }: PodcastPlayerProps)
     window.addEventListener(ACTIVE_EVENT, onOtherPlay as EventListener)
     return () =>
       window.removeEventListener(ACTIVE_EVENT, onOtherPlay as EventListener)
+  }, [id])
+
+  // --- Real waveform peaks (lazy, with synthetic fallback) -------------
+  useEffect(() => {
+    let cancelled = false
+
+    const fetchPeaks = async () => {
+      if (peaksFetchedRef.current) return
+      peaksFetchedRef.current = true
+      try {
+        const res = await fetch(`/api/podcast/waveform?id=${encodeURIComponent(id)}`)
+        if (!res.ok) return
+        const data: { peaks: number[] | null } = await res.json()
+        if (cancelled || !data.peaks || data.peaks.length === 0) return
+        // Resample the high-resolution peaks down to the rendered bar count,
+        // taking the max per slice so brief loud moments stay visible.
+        const src = data.peaks
+        barsRef.current = Array.from({ length: BAR_COUNT }, (_, i) => {
+          const start = Math.floor((i * src.length) / BAR_COUNT)
+          const stop = Math.max(start + 1, Math.floor(((i + 1) * src.length) / BAR_COUNT))
+          let max = 0
+          for (let j = start; j < stop && j < src.length; j++) {
+            if (src[j] > max) max = src[j]
+          }
+          return max
+        })
+        setPeaksVersion((v) => v + 1)
+      } catch {
+        // Network/parse error — keep the synthetic waveform.
+      }
+    }
+
+    const el = containerRef.current
+    if (!el || typeof IntersectionObserver === "undefined") {
+      void fetchPeaks()
+      return () => {
+        cancelled = true
+      }
+    }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect()
+          void fetchPeaks()
+        }
+      },
+      { rootMargin: "300px" }
+    )
+    io.observe(el)
+    return () => {
+      cancelled = true
+      io.disconnect()
+    }
   }, [id])
 
   // --- Audio element wiring --------------------------------------------
@@ -204,7 +262,7 @@ export function PodcastPlayer({ id, src, durationHint = 0 }: PodcastPlayerProps)
   )
 
   return (
-    <div className="mt-4 flex items-center gap-3">
+    <div ref={containerRef} className="mt-4 flex items-center gap-3">
       <audio
         ref={audioRef}
         src={src}
