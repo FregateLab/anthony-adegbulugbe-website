@@ -70,6 +70,17 @@ function getAttr(xml: string, tag: string, attr: string): string | null {
   return match ? match[1] : null
 }
 
+// Parse an iTunes duration ("HH:MM:SS", "MM:SS", or raw seconds) to seconds.
+export function durationToSeconds(value: string): number {
+  if (!value) return 0
+  if (!value.includes(":")) {
+    const n = Number(value)
+    return isNaN(n) ? 0 : n
+  }
+  const parts = value.split(":").map((p) => Number(p) || 0)
+  return parts.reduce((acc, part) => acc * 60 + part, 0)
+}
+
 export function parseFeed(xml: string): PodcastFeed {
   const channelMatch = xml.match(/<channel>([\s\S]*?)<item>/i)
   const channel = channelMatch ? channelMatch[1] : xml
@@ -106,5 +117,21 @@ export function parseFeed(xml: string): PodcastFeed {
     image: getAttr(channel, "itunes:image", "href") || "",
     rssUrl: PODCAST_RSS_URL,
     episodes,
+  }
+}
+
+// Fetch and parse the live feed. Cached hourly and shared by the API route
+// and the server-rendered structured data in the podcast layout.
+export async function fetchPodcastFeed(): Promise<PodcastFeed | null> {
+  try {
+    const res = await fetch(PODCAST_RSS_URL, {
+      headers: { "User-Agent": "anthony-adegbulugbe-website/1.0" },
+      next: { revalidate: 3600 },
+    })
+    if (!res.ok) return null
+    return parseFeed(await res.text())
+  } catch (error) {
+    console.error("Failed to fetch podcast feed:", error)
+    return null
   }
 }

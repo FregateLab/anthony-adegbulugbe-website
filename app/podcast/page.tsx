@@ -19,6 +19,8 @@ import {
   ChevronUp,
 } from "lucide-react"
 import type { PodcastFeed, PodcastEpisode } from "@/lib/podcast"
+import { durationToSeconds } from "@/lib/podcast"
+import { PodcastPlayer } from "@/components/podcast-player"
 
 const RSS_URL = "https://anchor.fm/s/113939d74/podcast/rss"
 
@@ -115,14 +117,11 @@ function EpisodeCard({ episode }: { episode: PodcastEpisode }) {
         )}
 
         {episode.audioUrl && (
-          <audio
-            controls
-            preload="none"
-            className="w-full mt-4"
+          <PodcastPlayer
+            id={episode.guid}
             src={episode.audioUrl}
-          >
-            Your browser does not support the audio element.
-          </audio>
+            durationHint={durationToSeconds(episode.duration)}
+          />
         )}
       </CardContent>
     </Card>
