@@ -82,9 +82,12 @@ export default function PastorProfilePage() {
                 pastoral care and church leadership. This experience prepared him for greater responsibilities in God's
                 kingdom.
               </p>
-              <p className="text-sm sm:text-base leading-relaxed">
+              <p className="text-sm sm:text-base leading-relaxed mb-3 sm:mb-4">
                 Later, his ministry continued and flourished in Abuja at CAC All Saints' Chapel, Citec, where he would
                 launch some of his most impactful programs and demonstrate exceptional leadership qualities.
+              </p>
+              <p className="text-sm sm:text-base leading-relaxed">
+                He&apos;s currently the Vice Chancellor of Joseph Ayo Babalola University.
               </p>
             </div>
           </div>
@@ -131,11 +134,7 @@ export default function PastorProfilePage() {
                 <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-red-600">ACADEMIC LEADERSHIP</h3>
                 <div className="space-y-3 sm:space-y-4">
                   <div>
-                    <h4 className="font-bold text-sm sm:text-base">Director, Center for Energy Research</h4>
-                    <p className="text-xs sm:text-sm text-gray-700">Obafemi Awolowo University (OAU)</p>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm sm:text-base">Chancellor</h4>
+                    <h4 className="font-bold text-sm sm:text-base">Vice Chancellor</h4>
                     <p className="text-xs sm:text-sm text-gray-700">Joseph Ayo Babalola University (Current)</p>
                   </div>
                 </div>
@@ -289,8 +288,8 @@ export default function PastorProfilePage() {
             <div className="sm:col-span-2 lg:col-span-1">
               <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-red-600">ACADEMIC LEGACY</h3>
               <p className="text-xs sm:text-sm">
-                From First-Class honors to MIT doctorate, serving as Chancellor and Presidential Adviser, demonstrating
-                excellence in education and governance.
+                From First-Class honors to MIT doctorate, serving as Vice Chancellor and Presidential Adviser,
+                demonstrating excellence in education and governance.
               </p>
             </div>
 

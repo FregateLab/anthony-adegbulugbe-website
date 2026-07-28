@@ -22,6 +22,9 @@ export function PastorProfileSection() {
               introduced a welfare scheme providing free medical care to pastors and their families and launched
               empowerment programs for women in the church.
             </p>
+            <p>
+              He&apos;s currently the Vice Chancellor of Joseph Ayo Babalola University.
+            </p>
           </div>
         </div>
 
@@ -35,13 +38,6 @@ export function PastorProfileSection() {
               <p className="text-xs sm:text-sm text-gray-700">
                 First-Class B.Sc. in Electrical Engineering from University of Ife (now OAU) and D.Sc. from MIT in
                 Nuclear Materials Engineering. Over 40 years in academia, government, and church ministry.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-sm sm:text-base md:text-lg font-bold mb-2">OAU Leadership</h4>
-              <p className="text-xs sm:text-sm text-gray-700">
-                Served as Director at OAU's Center for Energy Research and Presidential Adviser on Energy to President
-                Obasanjo. Currently Chancellor of Joseph Ayo Babalola University.
               </p>
             </div>
             <div>
